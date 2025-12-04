@@ -31,14 +31,14 @@ func main() {
 	db := database.GetDB()
 
 	authRepo := repositories.NewJWTRepository(db)
+	georepRepo := repositories.NewGeorepRepository(db)
 	utilisateurRepo := repositories.NewUtilisateurRepository(db)
 	utilisateurService := services.NewUtilisateurService(utilisateurRepo, authRepo)
 	utilisateurHandler := handlers.NewUtilisateurHandler(utilisateurService)
 
-	authService := services.NewAuthservice(authRepo, utilisateurRepo)
+	authService := services.NewAuthservice(authRepo, utilisateurRepo, georepRepo)
 	authHandler := handlers.NewAuthandler(authService)
 
-	georepRepo := repositories.NewGeorepRepository(db)
 	georepService := services.NewGeorepService(georepRepo)
 	georepHandler := handlers.NewGeorepHandler(georepService)
 

@@ -13,12 +13,18 @@ import (
 type AuthService struct {
 	jwtRepo         *repositories.JWTRepository
 	utilisateurRepo *repositories.UtilisateurRepository
+	georepRepo      *repositories.GeorepRepository
 }
 
-func NewAuthservice(jwtRepo *repositories.JWTRepository, utilisateurRepo *repositories.UtilisateurRepository) *AuthService {
+func NewAuthservice(
+	jwtRepo *repositories.JWTRepository,
+	utilisateurRepo *repositories.UtilisateurRepository,
+	georepRepo *repositories.GeorepRepository,
+) *AuthService {
 	return &AuthService{
 		jwtRepo:         jwtRepo,
 		utilisateurRepo: utilisateurRepo,
+		georepRepo:      georepRepo,
 	}
 }
 
@@ -31,9 +37,15 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 		return nil, fmt.Errorf("nom, email, poste, telephone et mot de passe sont obligatoires")
 	}
 
-	utilisateur_exist, _ := s.utilisateurRepo.FindByEmail(utilisateurDTO.Email)
+	if utilisateurDTO.GeoreperageID == 0 {
+		return nil, fmt.Errorf("vous devez sélectionner un site")
+	}
 
-	if utilisateur_exist != nil {
+	if _, err := s.georepRepo.FindByID(uint(utilisateurDTO.GeoreperageID)); err != nil {
+		return nil, fmt.Errorf("le site sélectionné n'existe pas")
+	}
+
+	if _, err := s.utilisateurRepo.FindByEmail(utilisateurDTO.Email); err == nil {
 		return nil, fmt.Errorf("cet email est déjà utilisé")
 	}
 
