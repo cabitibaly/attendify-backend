@@ -100,7 +100,7 @@ func CreateGeoreperage() {
 	err := DB.Where("position = ?", "POWERTECH BOBO site 22").First(&georep).Error
 
 	if err != nil {
-		georep.Position = "POWERTECH BOBO site 22"
+		georep.NomSite = "POWERTECH BOBO site 22"
 		georep.Latitude = 11.1895678
 		georep.Longitude = -4.3152317
 		georep.Rayon = 100

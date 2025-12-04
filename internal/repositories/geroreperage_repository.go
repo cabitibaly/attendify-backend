@@ -29,6 +29,18 @@ func (r *GeorepRepository) FindByID(id uint) (*models.Georeperage, error) {
 	return &georep, nil
 }
 
+func (r *GeorepRepository) FindByNomSite(nomSite string) (*models.Georeperage, error) {
+	var georep models.Georeperage
+
+	err := r.db.Where("nomSite = ?", nomSite).First(&georep).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &georep, nil
+}
+
 func (r *GeorepRepository) FindAll(page, limit int) ([]models.Georeperage, bool, int64, error) {
 	var georeps []models.Georeperage
 	var total int64
