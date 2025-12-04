@@ -38,6 +38,10 @@ func main() {
 	authService := services.NewAuthservice(authRepo, utilisateurRepo)
 	authHandler := handlers.NewAuthandler(authService)
 
+	georepRepo := repositories.NewGeorepRepository(db)
+	georepService := services.NewGeorepService(georepRepo)
+	georepHandler := handlers.NewGeorepHandler(georepService)
+
 	router := gin.Default()
 
 	routes.AuthRoutes(
@@ -49,6 +53,12 @@ func main() {
 	routes.UtilisateurRoutes(
 		router,
 		utilisateurHandler,
+		authService,
+	)
+
+	routes.GeorepRoutes(
+		router,
+		georepHandler,
 		authService,
 	)
 
