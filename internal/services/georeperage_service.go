@@ -38,7 +38,7 @@ func (s *GeorepService) CreerUnSite(georepDTO dto.GeorepDTO) error {
 	return s.georepRepo.Create(&georep)
 }
 
-func (s *GeorepService) lireUnSite(id uint) (*models.Georeperage, error) {
+func (s *GeorepService) LireUnSite(id uint) (*models.Georeperage, error) {
 	return s.georepRepo.FindByID(id)
 }
 
