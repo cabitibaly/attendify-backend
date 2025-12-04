@@ -117,7 +117,7 @@ func (s *UtilisateurService) ModifierSonMotDePasse(utilisateurID uint, ancien, n
 
 	if !utilisateurExist.MotdepasseAReinitialiser {
 		if !utils.ComparePassword(ancien, utilisateurExist.MotDePasse) {
-			return fmt.Errorf("les deux mot de passe sont différents")
+			return fmt.Errorf("acient mot de passe incorrect")
 		}
 	}
 

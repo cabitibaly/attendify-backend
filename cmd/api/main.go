@@ -31,12 +31,16 @@ func main() {
 	db := database.GetDB()
 
 	authRepo := repositories.NewJWTRepository(db)
+	georepRepo := repositories.NewGeorepRepository(db)
 	utilisateurRepo := repositories.NewUtilisateurRepository(db)
 	utilisateurService := services.NewUtilisateurService(utilisateurRepo, authRepo)
 	utilisateurHandler := handlers.NewUtilisateurHandler(utilisateurService)
 
-	authService := services.NewAuthservice(authRepo, utilisateurRepo)
+	authService := services.NewAuthservice(authRepo, utilisateurRepo, georepRepo)
 	authHandler := handlers.NewAuthandler(authService)
+
+	georepService := services.NewGeorepService(georepRepo)
+	georepHandler := handlers.NewGeorepHandler(georepService)
 
 	router := gin.Default()
 
@@ -49,6 +53,12 @@ func main() {
 	routes.UtilisateurRoutes(
 		router,
 		utilisateurHandler,
+		authService,
+	)
+
+	routes.GeorepRoutes(
+		router,
+		georepHandler,
 		authService,
 	)
 
