@@ -7,7 +7,9 @@ type Pointage struct {
 	Arrivee                  time.Time  `gorm:"autoCreateTime" json:"arrivee"`
 	Depart                   *time.Time `gorm:"timestamp" json:"depart"`
 	EstPresent               bool       `gorm:"default:false" json:"estPresent"`
-	EnRetard                 bool       `gorm:"default:false" json:"EnRetard"`
+	EnRetard                 bool       `gorm:"default:false" json:"enRetard"`
+	HeuresTravaillees        *float64   `gorm:"type:double" json:"heuresTravaillees"`
+	DepartAnticipe           bool       `gorm:"default:false" json:"departAnticipe"`
 	UtilisateurID            int        `gorm:"type:int" json:"utilisateurID"`
 	DateModificationPointage time.Time  `gorm:"autoUpdateTime" json:"dateModification"`
 
