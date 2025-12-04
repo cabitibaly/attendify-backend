@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type GeorepHandler struct {
@@ -78,6 +80,14 @@ func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	site, err := h.service.LireUnSite(uint(id))
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":  "Le site n'existe pas",
+			"status": http.StatusNotFound,
+		})
+		return
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

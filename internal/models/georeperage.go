@@ -4,7 +4,7 @@ import "time"
 
 type Georeperage struct {
 	IDGeoreperage          int       `gorm:"primaryKey" json:"id"`
-	NomSite                string    `gorm:"type:varchar(255);not null;uniqueIndex;" json:"position"`
+	NomSite                string    `gorm:"type:varchar(255);not null;uniqueIndex;" json:"site"`
 	Latitude               float64   `gorm:"type:double;not null;" json:"latitude"`
 	Longitude              float64   `gorm:"type:double;not null;" json:"longitude"`
 	Rayon                  float64   `gorm:"type:double;not null;" json:"rayon"`

@@ -97,7 +97,7 @@ func InitDefaultStatutConge() {
 
 func CreateGeoreperage() {
 	var georep models.Georeperage
-	err := DB.Where("position = ?", "POWERTECH BOBO site 22").First(&georep).Error
+	err := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&georep).Error
 
 	if err != nil {
 		georep.NomSite = "POWERTECH BOBO site 22"
@@ -122,7 +122,7 @@ func CreateAdmin() {
 
 		var georep models.Georeperage
 
-		erreur := DB.Where("position = ?", "POWERTECH BOBO site 22").First(&georep).Error
+		erreur := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&georep).Error
 
 		if erreur != nil {
 			panic(erreur)

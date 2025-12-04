@@ -56,7 +56,7 @@ func (r *GeorepRepository) FindAll(page, limit int) ([]models.Georeperage, bool,
 }
 
 func (r *GeorepRepository) Update(id uint, data map[string]any) error {
-	return r.db.Model(&models.Georeperage{}).Updates(data).Error
+	return r.db.Model(&models.Georeperage{}).Where("id_georeperage = ?", id).Updates(data).Error
 }
 
 func (r *GeorepRepository) Delete(id uint) error {
