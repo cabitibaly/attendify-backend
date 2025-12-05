@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/cabitibaly/internal/models"
 	"gorm.io/gorm"
 )
@@ -52,6 +54,45 @@ func (r *CongeRepository) FindAll(utilisateurID uint, statutID uint, page, limit
 
 	hasNextPage := int64(limit*page) <= total
 	return conges, hasNextPage, total, nil
+}
+
+func (r *CongeRepository) FindByUtilisateurIDAndPeriode(utilisateurID uint, debutJour, finJour time.Time) (*models.Conge, error) {
+	var conge models.Conge
+
+	err := r.db.Where("utilisateur_id = ? AND date_depart >= ? AND date_depart <= ? AND date_retour >= ? AND date_retour <= ?",
+		utilisateurID,
+		debutJour,
+		debutJour,
+		finJour,
+		finJour,
+	).First(&conge).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &conge, nil
+}
+
+func (r *CongeRepository) FindByUtilisateurAndAnnee(utilisateurID uint, location *time.Location) ([]models.Conge, error) {
+	var conges []models.Conge
+
+	maintenant := time.Now().In(location)
+	debutAnnee := time.Date(maintenant.Year(), time.January, 1, 0, 0, 0, 0, location)
+	finAnnee := time.Date(maintenant.Year()+1, time.January, 1, 0, 0, 0, 0, location)
+
+	err := r.db.Where(
+		"utilisateur_id = ? AND date_depart < ? AND date_retour >= ?",
+		utilisateurID,
+		finAnnee,
+		debutAnnee,
+	).Find(&conges).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conges, nil
 }
 
 func (r *CongeRepository) Update(id uint, data map[string]any) error {
