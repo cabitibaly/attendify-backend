@@ -21,7 +21,7 @@ func UtilisateurRoutes(
 	}
 
 	admin := utilisateur.Group("/")
-	admin.Use(middlewares.AutorisationMiddleware())
+	admin.Use(middlewares.AutorisationMiddleware(1))
 	{
 		admin.GET("/tous-les-employes", utilisateurHandler.TousLesEmployesHandler)
 		admin.GET("/tous-les-employes/:id", utilisateurHandler.LireUnEmployeHandler)

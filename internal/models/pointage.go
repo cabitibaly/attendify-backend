@@ -4,7 +4,7 @@ import "time"
 
 type Pointage struct {
 	IDPointage               int        `gorm:"primaryKey" json:"id"`
-	Arrivee                  time.Time  `gorm:"autoCreateTime" json:"arrivee"`
+	Arrive                   time.Time  `gorm:"autoCreateTime" json:"arrive"`
 	Depart                   *time.Time `gorm:"timestamp" json:"depart"`
 	EstPresent               bool       `gorm:"default:false" json:"estPresent"`
 	EnRetard                 bool       `gorm:"default:false" json:"enRetard"`
@@ -14,7 +14,7 @@ type Pointage struct {
 	DateModificationPointage time.Time  `gorm:"autoUpdateTime" json:"dateModification"`
 
 	// Relations
-	Utilisateur *Utilisateur `gorm:"foreignKey:UtilisateurID;references:IDUtilisateur;constraint:OnDelete:CASCADE" json:"-"`
+	Utilisateur *Utilisateur `gorm:"foreignKey:UtilisateurID;references:IDUtilisateur;constraint:OnDelete:CASCADE" json:"utilisateur"`
 }
 
 func (p *Pointage) TableName() string {

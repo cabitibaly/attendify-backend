@@ -42,6 +42,10 @@ func main() {
 	georepService := services.NewGeorepService(georepRepo)
 	georepHandler := handlers.NewGeorepHandler(georepService)
 
+	pointageRepo := repositories.NewPointageRepository(db)
+	pointageService := services.NewPointageService(pointageRepo, utilisateurRepo)
+	pointageHandler := handlers.NewPointageHandler(pointageService)
+
 	router := gin.Default()
 
 	routes.AuthRoutes(
@@ -59,6 +63,12 @@ func main() {
 	routes.GeorepRoutes(
 		router,
 		georepHandler,
+		authService,
+	)
+
+	routes.PointageRoutes(
+		router,
+		pointageHandler,
 		authService,
 	)
 

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/cabitibaly/internal/models"
 	"github.com/cabitibaly/internal/repositories"
 	"github.com/cabitibaly/pkg/utils"
+	"gorm.io/gorm"
 )
 
 type PointageService struct {
@@ -25,8 +27,8 @@ func NewPointageService(
 	}
 }
 
-func (s *PointageService) PointageArrivee(pointageDTO dto.PointageDTO, empLatitude, empLongitude float64) error {
-	employe, errEmp := s.utilisateurRepo.FindByID(uint(pointageDTO.UtilisateurID))
+func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLongitude float64) error {
+	employe, errEmp := s.utilisateurRepo.FindWithGeoreperage(utilisateurID)
 
 	if errEmp != nil {
 		return errEmp
@@ -42,54 +44,91 @@ func (s *PointageService) PointageArrivee(pointageDTO dto.PointageDTO, empLatitu
 		return fmt.Errorf("vous n'êtes pas sur site")
 	}
 
+	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
+
+	if errLoc != nil {
+		panic(errLoc)
+	}
+
 	heureDebut := time.Date(
-		pointageDTO.Arrivee.Year(),
-		pointageDTO.Arrivee.Month(),
-		pointageDTO.Arrivee.Day(),
+		time.Now().Year(),
+		time.Now().Month(),
+		time.Now().Day(),
 		8, 0, 0, 0,
-		pointageDTO.Arrivee.Location(),
+		location,
 	)
 
-	pointage, err := s.pointageRepo.FindByUtilisateurID(uint(pointageDTO.UtilisateurID))
+	pointage, err := s.pointageRepo.FindByUtilisateurID(uint(employe.IDUtilisateur))
 
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
-	datePointage := pointage.Arrivee.Truncate(24 * time.Hour)
-	dateDTO := pointageDTO.Arrivee.Truncate(24 * time.Hour)
+	if errors.Is(err, gorm.ErrRecordNotFound) || pointage == nil {
+
+		pointage = &models.Pointage{
+			EstPresent:    true,
+			EnRetard:      time.Now().After(heureDebut),
+			UtilisateurID: int(utilisateurID),
+		}
+
+		return s.pointageRepo.Create(pointage)
+	}
+
+	datePointage := pointage.Arrive.Truncate(24 * time.Hour)
+	dateDTO := time.Now().Truncate(24 * time.Hour)
 
 	if datePointage.Equal(dateDTO) {
 		return fmt.Errorf("vous avez déjà un pointage pour cette journée")
 	}
 
 	newPointage := models.Pointage{
-		// Arrivee:       pointageDTO.Arrivee,
 		EstPresent:    true,
-		EnRetard:      pointageDTO.Arrivee.After(heureDebut),
-		UtilisateurID: pointageDTO.UtilisateurID,
+		EnRetard:      time.Now().After(heureDebut),
+		UtilisateurID: int(utilisateurID),
 	}
 
 	return s.pointageRepo.Create(&newPointage)
 }
 
-func (s *PointageService) PointageDepart(pointageDTO dto.PointageDTO) error {
+func (s *PointageService) PointageDepart(pointageDTO dto.PointageDTO, utilisateurID uint, empLatitude, empLongitude float64) error {
+	employe, errEmp := s.utilisateurRepo.FindWithGeoreperage(utilisateurID)
+
+	if errEmp != nil {
+		return errEmp
+	}
+
+	if !utils.EstDansLaZone(
+		empLatitude,
+		empLongitude,
+		employe.Georeperage.Latitude,
+		employe.Georeperage.Longitude,
+		employe.Georeperage.Rayon,
+	) {
+		return fmt.Errorf("vous n'êtes pas sur site")
+	}
+
+	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
+
+	if errLoc != nil {
+		panic(errLoc)
+	}
 
 	heureFin := time.Date(
-		pointageDTO.Arrivee.Year(),
-		pointageDTO.Arrivee.Month(),
-		pointageDTO.Arrivee.Day(),
+		time.Now().Year(),
+		time.Now().Month(),
+		time.Now().Day(),
 		16, 0, 0, 0,
-		pointageDTO.Arrivee.Location(),
+		location,
 	)
 
-	pointage, err := s.pointageRepo.FindByUtilisateurID(uint(pointageDTO.UtilisateurID))
+	pointage, err := s.pointageRepo.FindByUtilisateurID(utilisateurID)
 
 	if err != nil {
 		return err
 	}
 
-	datePointage := pointage.Arrivee.Truncate(24 * time.Hour)
+	datePointage := pointage.Arrive.Truncate(24 * time.Hour)
 	dateDTO := pointageDTO.Depart.Truncate(24 * time.Hour)
 
 	if !datePointage.Equal(dateDTO) {
@@ -99,20 +138,16 @@ func (s *PointageService) PointageDepart(pointageDTO dto.PointageDTO) error {
 	return s.pointageRepo.Update(uint(pointage.IDPointage), map[string]any{
 		"depart":            pointageDTO.Depart,
 		"departAnticipe":    pointageDTO.Depart.Before(heureFin),
-		"heuresTravaillees": pointageDTO.Depart.Sub(pointage.Arrivee).Hours(),
+		"heuresTravaillees": pointageDTO.Depart.Sub(pointage.Arrive).Hours(),
 	})
 }
 
-func (s *PointageService) TousLesPointages(utilisateurID uint, aujourdhui bool, page, limit int) ([]models.Pointage, bool, int64, error) {
-	return s.pointageRepo.FindAll(aujourdhui, utilisateurID, page, limit)
+func (s *PointageService) TousLesPointages(utilisateurID uint, aujourdhui bool, date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {
+	return s.pointageRepo.FindAll(utilisateurID, aujourdhui, date, page, limit)
 }
 
-func (s *PointageService) LireUnPointage(date time.Time) (models.Pointage, error) {
-	return s.pointageRepo.FindOneByDate(date)
-}
-
-func (s *PointageService) TousLesPointagesParDate(date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {
-	return s.pointageRepo.FindAllByDate(date, page, limit)
+func (s *PointageService) LireUnPointage(utilisateurID uint, date time.Time) (models.Pointage, error) {
+	return s.pointageRepo.FindOneByDate(utilisateurID, date)
 }
 
 func (s *PointageService) SupprimerPointage(pointageID uint) error {

@@ -19,7 +19,7 @@ func AuthRoutes(
 
 	auth.Use(
 		middlewares.AuthMiddleware(authService),
-		middlewares.AutorisationMiddleware(),
+		middlewares.AutorisationMiddleware(1),
 	)
 
 	auth.POST("/nouveau-compte-employe", authHandler.CreerUnCompteHandler)

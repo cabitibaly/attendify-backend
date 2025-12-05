@@ -79,6 +79,18 @@ func (r *UtilisateurRepository) FindAll(page, limt int) ([]models.Utilisateur, b
 	return utilisateurs, hasNextPage, total, err
 }
 
+func (r *UtilisateurRepository) FindWithGeoreperage(id uint) (*models.Utilisateur, error) {
+	var utilisateur models.Utilisateur
+
+	err := r.db.Preload("Georeperage").Where("id_utilisateur = ?", id).First(&utilisateur).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &utilisateur, nil
+}
+
 func (r *UtilisateurRepository) Update(id uint, data map[string]any) error {
 	return r.db.Model(&models.Utilisateur{}).Where("id_utilisateur = ?", id).Updates(data).Error
 }

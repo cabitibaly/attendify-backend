@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type PointageDTO struct {
-	Arrivee           time.Time  `json:"arrivee"`
+	Arrive            time.Time  `json:"arrive"`
 	Depart            *time.Time `json:"depart"`
 	EstPresent        bool       `json:"estPresent"`
 	EnRetard          bool       `json:"enRetard"`
