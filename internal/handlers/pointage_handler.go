@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -76,20 +75,11 @@ func (h *PointageHandler) PointageArriveeHandler(c *gin.Context) {
 }
 
 func (h *PointageHandler) PointageDepartHandler(c *gin.Context) {
-	var data dto.PointageDTO
 	empLatitude, _ := strconv.ParseFloat(c.Query("latitude"), 64)
 	empLongitute, _ := strconv.ParseFloat(c.Query("longitude"), 64)
 	utilisateurID, _ := c.Get("utilisateurID")
 
-	if err := c.ShouldBindJSON(&data); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  err.Error(),
-			"status": http.StatusBadRequest,
-		})
-		return
-	}
-
-	err := h.service.PointageDepart(data, utilisateurID.(uint), empLatitude, empLongitute)
+	err := h.service.PointageDepart(utilisateurID.(uint), empLatitude, empLongitute)
 
 	if err != nil {
 
@@ -110,6 +100,14 @@ func (h *PointageHandler) PointageDepartHandler(c *gin.Context) {
 		}
 
 		if strings.Contains(err.Error(), "vous n'avez pas") {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":  err.Error(),
+				"status": http.StatusBadRequest,
+			})
+			return
+		}
+
+		if strings.Contains(err.Error(), "vous avez déjà") {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":  err.Error(),
 				"status": http.StatusBadRequest,

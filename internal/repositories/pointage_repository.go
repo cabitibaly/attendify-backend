@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cabitibaly/internal/models"
@@ -52,7 +53,7 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
 
 	if errLoc != nil {
-		panic(errLoc)
+		return nil, false, 0, fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
 	if !date.IsZero() {
@@ -102,13 +103,13 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 	return pointages, hasNextPage, total, err
 }
 
-func (r *PointageRepository) FindOneByDate(utilisateurID uint, date time.Time) (models.Pointage, error) {
+func (r *PointageRepository) FindOneByDate(utilisateurID uint, date time.Time) (*models.Pointage, error) {
 	var pointage models.Pointage
 
 	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
 
 	if errLoc != nil {
-		panic(errLoc)
+		return nil, fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
 	debutJournee := time.Date(
@@ -124,10 +125,10 @@ func (r *PointageRepository) FindOneByDate(utilisateurID uint, date time.Time) (
 	err := r.db.Where("arrive >= ? AND arrive < ? AND utilisateur_id = ?", debutJournee, finJournee, utilisateurID).First(&pointage).Error
 
 	if err != nil {
-		return pointage, err
+		return nil, err
 	}
 
-	return pointage, nil
+	return &pointage, nil
 
 }
 
