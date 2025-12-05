@@ -15,7 +15,7 @@ type Conge struct {
 	DateModificationConge time.Time `gorm:"autoUpdateTime" json:"dateModification"`
 
 	// Relations
-	Utilisateur *Utilisateur `gorm:"foreignKey:UtilisateurID;references:IDUtilisateur;constraint:OnDelete:CASCADE" json:"-"`
+	Utilisateur *Utilisateur `gorm:"foreignKey:UtilisateurID;references:IDUtilisateur;constraint:OnDelete:CASCADE" json:"utilisateur"`
 	StatutConge *StatutConge `gorm:"foreignKey:StatutCongeID;references:IDStatutConge" json:"statutConge"`
 }
 

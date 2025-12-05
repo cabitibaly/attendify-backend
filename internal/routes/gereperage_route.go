@@ -19,7 +19,7 @@ func GeorepRoutes(
 	}
 
 	admin := georep.Group("/")
-	admin.Use(middlewares.AutorisationMiddleware())
+	admin.Use(middlewares.AutorisationMiddleware(1))
 	{
 		admin.POST("/ajouter", georepHandler.CreerUnSiteHandler)
 		admin.GET("/tous-les-sites", georepHandler.TousLesSitesHandler)
