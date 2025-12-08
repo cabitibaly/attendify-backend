@@ -64,12 +64,12 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	}
 
 	// On verifie qu'il n'y a pas de congé dans cette période
-	congeExistant, err := s.congeRepo.FindByUtilisateurIDAndPeriode(utilisateurID, debutJour, finJour)
+	congesExistants, err := s.congeRepo.FindByUtilisateurIDAndPeriode(utilisateurID, debutJour, finJour)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
-	if congeExistant != nil {
+	if len(congesExistants) > 0 {
 		return fmt.Errorf("vous avez déjà un congé dans cette période")
 	}
 

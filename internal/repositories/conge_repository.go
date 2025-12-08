@@ -56,22 +56,20 @@ func (r *CongeRepository) FindAll(utilisateurID uint, statutID uint, page, limit
 	return conges, hasNextPage, total, nil
 }
 
-func (r *CongeRepository) FindByUtilisateurIDAndPeriode(utilisateurID uint, debutJour, finJour time.Time) (*models.Conge, error) {
-	var conge models.Conge
+func (r *CongeRepository) FindByUtilisateurIDAndPeriode(utilisateurID uint, debutJour, finJour time.Time) ([]models.Conge, error) {
+	var conges []models.Conge
 
-	err := r.db.Where("utilisateur_id = ? AND date_depart >= ? AND date_depart <= ? AND date_retour >= ? AND date_retour <= ?",
+	err := r.db.Where("utilisateur_id = ? AND date_depart <= ? AND date_retour >= ?",
 		utilisateurID,
-		debutJour,
-		debutJour,
 		finJour,
-		finJour,
-	).First(&conge).Error
+		debutJour,
+	).Find(&conges).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &conge, nil
+	return conges, nil
 }
 
 func (r *CongeRepository) FindByUtilisateurAndAnnee(utilisateurID uint, location *time.Location) ([]models.Conge, error) {
