@@ -98,3 +98,15 @@ func (r *UtilisateurRepository) Update(id uint, data map[string]any) error {
 func (r *UtilisateurRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Utilisateur{}, id).Error
 }
+
+func (r *UtilisateurRepository) GetSoldeConge(id uint) (int, error) {
+	var utilisateur models.Utilisateur
+
+	err := r.db.Where("id_utilisateur = ?", id).First(&utilisateur).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return utilisateur.SoldeConge, nil
+}

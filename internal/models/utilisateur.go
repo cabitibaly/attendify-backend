@@ -10,6 +10,7 @@ type Utilisateur struct {
 	Email                       string    `gorm:"type:varchar(150);not null;uniqueIndex" json:"email"`
 	Poste                       string    `gorm:"type:varchar(50);not null" json:"poste"`
 	NombreConge                 int       `gorm:"type:int;default:20" json:"nombreConge"`
+	SoldeConge                  int       `gorm:"type:int;default:20" json:"soldeConge"`
 	MotdepasseAReinitialiser    bool      `gorm:"default:true" json:"motdepasseAReinitialiser"`
 	MotDePasse                  string    `gorm:"type:varchar(100);not null" json:"-"`
 	RoleID                      int       `gorm:"type:int" json:"roleID"`

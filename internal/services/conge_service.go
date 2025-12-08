@@ -1,22 +1,25 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/models"
 	"github.com/cabitibaly/internal/repositories"
-	"gorm.io/gorm"
+	"github.com/cabitibaly/pkg/utils"
 )
 
 type CongeService struct {
-	repo *repositories.CongeRepository
+	congeRepo       *repositories.CongeRepository
+	utilisateurRepo *repositories.UtilisateurRepository
 }
 
-func NewCongeService(repo *repositories.CongeRepository) *CongeService {
-	return &CongeService{repo: repo}
+func NewCongeService(congeRepo *repositories.CongeRepository, utilisateurRepo *repositories.UtilisateurRepository) *CongeService {
+	return &CongeService{
+		congeRepo:       congeRepo,
+		utilisateurRepo: utilisateurRepo,
+	}
 }
 
 func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint) error {
@@ -46,15 +49,26 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return fmt.Errorf("la date de debut ne peut pas être dans le passé")
 	}
 
-	_, err := s.repo.FindByUtilisateurIDAndPeriode(utilisateurID, debutJour, finJour)
+	// On verifie qu'il n'y a pas de congé dans cette période
+	congeExistant, err := s.congeRepo.FindByUtilisateurIDAndPeriode(utilisateurID, debutJour, finJour)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
-		}
 		return err
 	}
 
-	// Le nombre de congés d'un utilisateur: implementation (ref: claude)
+	if congeExistant != nil {
+		return fmt.Errorf("vous avez déjà un congé dans cette période")
+	}
+
+	congeRestant, err := s.utilisateurRepo.GetSoldeConge(utilisateurID)
+	if err != nil {
+		return err
+	}
+
+	nombreDeJours := utils.CalculerNombreJours(debutJour, finJour)
+
+	if nombreDeJours > congeRestant {
+		return fmt.Errorf("le nombre de jours ne peut pas dépasser le solde de vos congés")
+	}
 
 	conge := &models.Conge{
 		DateDepart:        debutJour,
@@ -62,26 +76,67 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		Raison:            congeDTO.Raison,
 		TypeConge:         congeDTO.TypeConge,
 		PieceJointe:       congeDTO.PieceJointe,
+		NombreJours:       nombreDeJours,
 		StatutCongeID:     1,
 		UtilisateurID:     int(utilisateurID),
 		DateCreationConge: maintenant,
 	}
 
-	return s.repo.Create(conge)
+	return s.congeRepo.Create(conge)
 }
 
-func (s *CongeService) TousLesPointages(utilsateurID uint, statutID uint, page, limit int) ([]models.Conge, bool, int64, error) {
-	return s.repo.FindAll(utilsateurID, statutID, page, limit)
+func (s *CongeService) TousLesCongés(utilsateurID uint, statutID uint, page, limit int) ([]models.Conge, bool, int64, error) {
+
+	return s.congeRepo.FindAll(utilsateurID, statutID, page, limit)
 }
 
 func (s *CongeService) LireUnConge(id uint) (*models.Conge, error) {
-	return s.repo.FindByID(id)
+	return s.congeRepo.FindByID(id)
 }
 
 func (s *CongeService) ModifierUnConge(id uint, data map[string]any) error {
-	return s.repo.Update(id, data)
+	congeExistant, err := s.congeRepo.FindByID(id)
+	if err != nil {
+		return err
+	}
+
+	if congeExistant.StatutCongeID == 2 || congeExistant.StatutCongeID == 3 {
+		return fmt.Errorf("ce congé a été traité, donc il ne peut pas être modifié")
+	}
+
+	return s.congeRepo.Update(id, data)
+}
+
+func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
+	congeExistant, err := s.congeRepo.FindByID(id)
+	if err != nil {
+		return err
+	}
+
+	if congeExistant.StatutCongeID == 2 || congeExistant.StatutCongeID == 3 {
+		return fmt.Errorf("ce congé a été traité, donc il ne peut pas être modifié")
+	}
+
+	if statutID == 2 && congeExistant.StatutCongeID == 1 {
+		congeResant, err := s.utilisateurRepo.GetSoldeConge(uint(congeExistant.UtilisateurID))
+		if err != nil {
+			return err
+		}
+
+		errEmpUpdate := s.utilisateurRepo.Update(uint(congeExistant.UtilisateurID), map[string]any{"soldeConge": congeResant - congeExistant.NombreJours})
+		if errEmpUpdate != nil {
+			return errEmpUpdate
+		}
+	}
+
+	errCongeUpdate := s.congeRepo.Update(id, map[string]any{"StatutCongeID": statutID})
+	if errCongeUpdate != nil {
+		return errCongeUpdate
+	}
+
+	return nil
 }
 
 func (s *CongeService) SupprimerUnConge(id uint) error {
-	return s.repo.Delete(id)
+	return s.congeRepo.Delete(id)
 }
