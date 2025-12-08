@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/cabitibaly/internal/models"
 	"github.com/cabitibaly/internal/repositories"
 	"github.com/cabitibaly/pkg/utils"
+	"gorm.io/gorm"
 )
 
 type CongeService struct {
@@ -29,6 +31,14 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
+	if congeDTO.Raison == "" {
+		return fmt.Errorf("qu'elle est la raison de votre congé")
+	}
+
+	if congeDTO.TypeConge == "" {
+		return fmt.Errorf("quel type de congé vous avez")
+	}
+
 	if congeDTO.DateDepart.In(location).IsZero() || congeDTO.DateRetour.In(location).IsZero() || congeDTO.Raison == "" {
 		return fmt.Errorf("date de départ, date de retour et raison sont obligatoires")
 	}
@@ -41,6 +51,10 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	finJour := time.Date(dateFin.Year(), dateFin.Month(), dateFin.Day(), 0, 0, 0, 0, location)
 	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, location)
 
+	if debutJour.Equal(aujourdhui) {
+		return fmt.Errorf("la date de départ ne peut pas être aujourd'hui")
+	}
+
 	if finJour.Before(debutJour) {
 		return fmt.Errorf("la date de retour ne peut pas être antérieure à la date de départ")
 	}
@@ -51,7 +65,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 
 	// On verifie qu'il n'y a pas de congé dans cette période
 	congeExistant, err := s.congeRepo.FindByUtilisateurIDAndPeriode(utilisateurID, debutJour, finJour)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
@@ -85,8 +99,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	return s.congeRepo.Create(conge)
 }
 
-func (s *CongeService) TousLesCongés(utilsateurID uint, statutID uint, page, limit int) ([]models.Conge, bool, int64, error) {
-
+func (s *CongeService) TousLesConges(utilsateurID uint, statutID uint, page, limit int) ([]models.Conge, bool, int64, error) {
 	return s.congeRepo.FindAll(utilsateurID, statutID, page, limit)
 }
 

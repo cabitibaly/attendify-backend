@@ -22,7 +22,7 @@ func (r *CongeRepository) Create(conge *models.Conge) error {
 func (r *CongeRepository) FindByID(id uint) (*models.Conge, error) {
 	var conge models.Conge
 
-	err := r.db.First(conge, id).Error
+	err := r.db.Preload("Utilisateur").Preload("StatutConge").First(&conge, id).Error
 	if err != nil {
 		return nil, err
 	}
