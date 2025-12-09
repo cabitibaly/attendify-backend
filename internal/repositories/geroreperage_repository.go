@@ -48,7 +48,7 @@ func (r *GeorepRepository) FindAll(page, limit int) ([]models.Georeperage, bool,
 	r.db.Model(&models.Georeperage{}).Count(&total)
 
 	offset := (page - 1) * limit
-	err := r.db.Offset(offset).Limit(limit).Find(&georeps).Error
+	err := r.db.Offset(offset).Limit(limit).Order("id_georeperage DESC").Find(&georeps).Error
 
 	hasNextPage := int64(limit*page) <= total
 

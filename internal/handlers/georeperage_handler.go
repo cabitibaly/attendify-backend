@@ -69,7 +69,7 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"sites":       sites,
+		"sites":       dto.ToGeorepDTOList(sites),
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -98,7 +98,7 @@ func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"site":   site,
+		"site":   dto.ToGeorepDTO(site),
 		"status": http.StatusOK,
 	})
 

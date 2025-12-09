@@ -49,9 +49,12 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 		return fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
+	heureDebutGeorep := employe.Georeperage.HeureDebut.Hour()
+	minuteDebutGeorep := employe.Georeperage.HeureDebut.Minute()
+	secondeDebutGeorep := employe.Georeperage.HeureDebut.Second()
+
 	maintenant := time.Now().In(location)
-	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, location)
-	heureDebut := aujourdhui.Add(8 * time.Hour)
+	heureDebut := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureDebutGeorep, minuteDebutGeorep, secondeDebutGeorep, 0, location)
 
 	dernierPointage, err := s.pointageRepo.FindByUtilisateurID(uint(employe.IDUtilisateur))
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -100,9 +103,12 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 		return fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
+	heureFinGeorep := employe.Georeperage.HeureFin.Hour()
+	minuteFinGeorep := employe.Georeperage.HeureFin.Minute()
+	secondeFinGeorep := employe.Georeperage.HeureFin.Second()
+
 	maintenant := time.Now().In(location)
-	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, location)
-	heureFin := aujourdhui.Add(16 * time.Hour)
+	heureFin := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureFinGeorep, minuteFinGeorep, secondeFinGeorep, 0, location)
 
 	dernierPointage, err := s.pointageRepo.FindByUtilisateurID(utilisateurID)
 	if err != nil {
