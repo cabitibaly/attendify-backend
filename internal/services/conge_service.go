@@ -109,10 +109,10 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	}
 
 	errNotif := s.notifRepo.Create(&models.Notification{
-		Titre:           "Nouvelle demande",
-		Message:         "Une nouvelle demande de congé a été créée",
-		TypeNoficcation: "SUCCESS",
-		UtilisateurID:   1,
+		Titre:            "Nouvelle demande",
+		Message:          "Une nouvelle demande de congé a été créée",
+		TypeNotification: "SUCCESS",
+		UtilisateurID:    1,
 	})
 
 	if errNotif != nil {
@@ -179,10 +179,10 @@ func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
 	}
 
 	errNotif := s.notifRepo.Create(&models.Notification{
-		Titre:           "Validation du congé",
-		Message:         fmt.Sprintf("Votre demande a été %s", message),
-		TypeNoficcation: "SUCCESS",
-		UtilisateurID:   1,
+		Titre:            "Validation du congé",
+		Message:          fmt.Sprintf("Votre demande a été %s", message),
+		TypeNotification: "SUCCESS",
+		UtilisateurID:    congeExistant.UtilisateurID,
 	})
 
 	if errNotif != nil {

@@ -15,7 +15,7 @@ func NotificationRoutes(
 	notif := router.Group("/notification")
 	notif.Use(middlewares.AuthMiddleware(authService))
 	{
-		notif.GET("/toutes-les-notification", notificationHandler.ToutesLesNotificationsHandler)
+		notif.GET("/toutes-les-notifications", notificationHandler.ToutesLesNotificationsHandler)
 		notif.PATCH("/modifier/:id", notificationHandler.ModifierUneNoticationHandler)
 		notif.DELETE("/supprimer/:id", notificationHandler.SupprimerUneNotificationHandler)
 	}

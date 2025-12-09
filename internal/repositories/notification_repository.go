@@ -23,7 +23,7 @@ func (r *NotificationRepository) FindAll(utilisateurID uint, page, limit int) ([
 	r.db.Model(&models.Notification{}).Count(&total)
 
 	offset := (page - 1) * limit
-	err := r.db.Offset(offset).Limit(limit).Find(&notifications).Error
+	err := r.db.Offset(offset).Limit(limit).Where("utilisateur_id = ?", utilisateurID).Find(&notifications).Error
 	if err != nil {
 		return nil, false, err
 	}

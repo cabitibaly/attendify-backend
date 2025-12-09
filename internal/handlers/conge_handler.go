@@ -239,6 +239,14 @@ func (h *CongeHandler) ModifierStatutCongeHandler(c *gin.Context) {
 			return
 		}
 
+		if strings.Contains(errService.Error(), "congé") {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":  errService.Error(),
+				"status": http.StatusBadRequest,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  errService.Error(),
 			"status": http.StatusInternalServerError,
