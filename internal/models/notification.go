@@ -4,7 +4,7 @@ import "time"
 
 type Notification struct {
 	IDNoficiation          int       `gorm:"primaryKey" json:"id"`
-	EstLu                  bool      `gorm:"type:bool" json:"estLu"`
+	EstLu                  bool      `gorm:"type:bool;default:false" json:"estLu"`
 	TypeNoficcation        string    `gorm:"type:varchar(50)" json:"typeNoficcation"`
 	Titre                  string    `gorm:"type:varchar(255)" json:"titre"`
 	Message                string    `gorm:"type:text" json:"message"`

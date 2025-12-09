@@ -30,6 +30,7 @@ func main() {
 
 	db := database.GetDB()
 
+	notifRepo := repositories.NewNotificationRepository(db)
 	authRepo := repositories.NewJWTRepository(db)
 	georepRepo := repositories.NewGeorepRepository(db)
 	utilisateurRepo := repositories.NewUtilisateurRepository(db)
@@ -47,8 +48,11 @@ func main() {
 	pointageHandler := handlers.NewPointageHandler(pointageService)
 
 	congeRepo := repositories.NewCongeRepository(db)
-	congeService := services.NewCongeService(congeRepo, utilisateurRepo)
+	congeService := services.NewCongeService(congeRepo, utilisateurRepo, notifRepo)
 	congeHandler := handlers.NewCongeHandler(congeService)
+
+	notifService := services.NewNoficationService(notifRepo)
+	notifHandler := handlers.NewNoficationHandler(notifService)
 
 	router := gin.Default()
 
@@ -79,6 +83,12 @@ func main() {
 	routes.CongeRoute(
 		router,
 		congeHandler,
+		authService,
+	)
+
+	routes.NotificationRoutes(
+		router,
+		notifHandler,
 		authService,
 	)
 

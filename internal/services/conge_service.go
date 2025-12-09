@@ -15,12 +15,18 @@ import (
 type CongeService struct {
 	congeRepo       *repositories.CongeRepository
 	utilisateurRepo *repositories.UtilisateurRepository
+	notifRepo       *repositories.NotificationRepository
 }
 
-func NewCongeService(congeRepo *repositories.CongeRepository, utilisateurRepo *repositories.UtilisateurRepository) *CongeService {
+func NewCongeService(
+	congeRepo *repositories.CongeRepository,
+	utilisateurRepo *repositories.UtilisateurRepository,
+	notifRepo *repositories.NotificationRepository,
+) *CongeService {
 	return &CongeService{
 		congeRepo:       congeRepo,
 		utilisateurRepo: utilisateurRepo,
+		notifRepo:       notifRepo,
 	}
 }
 
@@ -96,7 +102,24 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		DateCreationConge: maintenant,
 	}
 
-	return s.congeRepo.Create(conge)
+	errCreate := s.congeRepo.Create(conge)
+
+	if errCreate != nil {
+		return errCreate
+	}
+
+	errNotif := s.notifRepo.Create(&models.Notification{
+		Titre:           "Nouvelle demande",
+		Message:         "Une nouvelle demande de congé a été créée",
+		TypeNoficcation: "SUCCESS",
+		UtilisateurID:   1,
+	})
+
+	if errNotif != nil {
+		return errNotif
+	}
+
+	return nil
 }
 
 func (s *CongeService) TousLesConges(utilsateurID uint, statutID uint, page, limit int) ([]models.Conge, bool, int64, error) {
@@ -145,6 +168,25 @@ func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
 	errCongeUpdate := s.congeRepo.Update(id, map[string]any{"StatutCongeID": statutID})
 	if errCongeUpdate != nil {
 		return errCongeUpdate
+	}
+
+	message := ""
+
+	if statutID == 2 {
+		message = "approuvée"
+	} else {
+		message = "rejetée"
+	}
+
+	errNotif := s.notifRepo.Create(&models.Notification{
+		Titre:           "Validation du congé",
+		Message:         fmt.Sprintf("Votre demande a été %s", message),
+		TypeNoficcation: "SUCCESS",
+		UtilisateurID:   1,
+	})
+
+	if errNotif != nil {
+		return errNotif
 	}
 
 	return nil
