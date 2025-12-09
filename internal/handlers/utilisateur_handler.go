@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +39,7 @@ func (h *UtilisateurHandler) MesInformationsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": utilisateur,
+		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
 		"status":      http.StatusOK,
 	})
 }
@@ -66,7 +67,7 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateurs": utilsateurs,
+		"utilisateurs": dto.ToUtilisateurResponseDTOList(utilsateurs),
 		"hasNextPage":  hasNextPage,
 		"total":        total,
 		"status":       http.StatusOK,
@@ -76,7 +77,7 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
 	utilisateurID, _ := strconv.Atoi(c.Param("id"))
 
-	utilsateur, err := h.service.LireUnEmploye(uint(utilisateurID))
+	utilisateur, err := h.service.LireUnEmploye(uint(utilisateurID))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -87,7 +88,7 @@ func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": utilsateur,
+		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
 		"status":      http.StatusOK,
 	})
 }

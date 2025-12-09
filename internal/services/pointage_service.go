@@ -27,7 +27,7 @@ func NewPointageService(
 }
 
 func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLongitude float64) error {
-	employe, errEmp := s.utilisateurRepo.FindWithGeoreperage(utilisateurID)
+	employe, errEmp := s.utilisateurRepo.FindByID(utilisateurID)
 
 	if errEmp != nil {
 		return errEmp
@@ -78,7 +78,7 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 }
 
 func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLongitude float64) error {
-	employe, errEmp := s.utilisateurRepo.FindWithGeoreperage(utilisateurID)
+	employe, errEmp := s.utilisateurRepo.FindByID(utilisateurID)
 
 	if errEmp != nil {
 		return errEmp
@@ -133,10 +133,6 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 
 func (s *PointageService) TousLesPointages(utilisateurID uint, aujourdhui bool, date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {
 	return s.pointageRepo.FindAll(utilisateurID, aujourdhui, date, page, limit)
-}
-
-func (s *PointageService) LireUnPointage(utilisateurID uint, date time.Time) (*models.Pointage, error) {
-	return s.pointageRepo.FindOneByDate(utilisateurID, date)
 }
 
 func (s *PointageService) SupprimerPointage(pointageID uint) error {

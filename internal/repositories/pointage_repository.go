@@ -48,7 +48,7 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 	var pointages []models.Pointage
 	var total int64
 
-	db := r.db.Model(&models.Pointage{}).Preload("Utilisateur")
+	db := r.db.Model(&models.Pointage{}).Preload("Utilisateur").Order("id_pointage DESC")
 
 	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
 
@@ -101,35 +101,6 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 	hasNextPage := int64(limit*page) <= total
 
 	return pointages, hasNextPage, total, err
-}
-
-func (r *PointageRepository) FindOneByDate(utilisateurID uint, date time.Time) (*models.Pointage, error) {
-	var pointage models.Pointage
-
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return nil, fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
-
-	debutJournee := time.Date(
-		date.Year(),
-		date.Month(),
-		date.Day(),
-		0, 0, 0, 0,
-		location,
-	)
-
-	finJournee := debutJournee.Add(24 * time.Hour)
-
-	err := r.db.Where("arrive >= ? AND arrive < ? AND utilisateur_id = ?", debutJournee, finJournee, utilisateurID).First(&pointage).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &pointage, nil
-
 }
 
 func (r *PointageRepository) Update(id uint, data map[string]any) error {
