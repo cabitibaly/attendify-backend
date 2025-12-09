@@ -34,7 +34,7 @@ func (r *CongeRepository) FindAll(utilisateurID uint, statutID uint, page, limit
 	var conges []models.Conge
 	var total int64
 
-	db := r.db.Model(&models.Conge{}).Preload("Utilisateur").Preload("StatutConge")
+	db := r.db.Model(&models.Conge{}).Preload("Utilisateur").Preload("StatutConge").Order("id_conge DESC")
 
 	if utilisateurID != 0 {
 		db.Where("utilisateur_id = ?", utilisateurID)

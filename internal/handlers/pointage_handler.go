@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -154,47 +155,51 @@ func (h *PointageHandler) TousLesPointagesHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"pointages":   pointages,
+		"pointages":   dto.ToPointageResponseDTOList(pointages),
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
 	})
 }
 
-func (h *PointageHandler) LireUnPointageHandler(c *gin.Context) {
-	date, err := time.Parse("2006-01-02T15:04:05.00Z", c.Query("date"))
-	utilisateurID, _ := c.Get("utilisateurID")
+func (h *PointageHandler) TousLesPointagesEmployeHandler(c *gin.Context) {
+	page, _ := strconv.Atoi(c.Query("page"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	aujoudhui, _ := strconv.ParseBool(c.Query("aujourdhui"))
+	date, _ := time.Parse("2006-01-02T15:04:05.00Z", c.Query("date"))
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  err.Error(),
-			"status": http.StatusInternalServerError,
+	utilisateurID, err := c.Get("utilisateurID")
+	if !err {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Erreur de connexion",
+			"status": http.StatusBadRequest,
 		})
 		return
 	}
 
-	pointage, err := h.service.LireUnPointage(utilisateurID.(uint), date)
+	if page < 1 {
+		page = 1
+	}
 
-	if err != nil {
+	if limit < 1 {
+		limit = 10
+	}
 
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error":  err.Error(),
-				"status": http.StatusNotFound,
-			})
-			return
-		}
+	pointages, hasNextPage, total, errService := h.service.TousLesPointages(utilisateurID.(uint), aujoudhui, date, page, limit)
 
+	if errService != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  err.Error(),
+			"error":  errService.Error(),
 			"status": http.StatusInternalServerError,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"pointage": pointage,
-		"status":   http.StatusOK,
+		"pointages":   dto.ToPointageResponseDTOList(pointages),
+		"hasNextPage": hasNextPage,
+		"total":       total,
+		"status":      http.StatusOK,
 	})
 }
 

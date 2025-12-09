@@ -20,7 +20,7 @@ func (r *UtilisateurRepository) Create(utilsateur *models.Utilisateur) error {
 func (r *UtilisateurRepository) FindByID(id uint) (*models.Utilisateur, error) {
 	var utilisateur models.Utilisateur
 
-	err := r.db.First(&utilisateur, id).Error
+	err := r.db.Preload("Georeperage").First(&utilisateur, id).Error
 
 	if err != nil {
 		return nil, err
@@ -72,23 +72,11 @@ func (r *UtilisateurRepository) FindAll(page, limt int) ([]models.Utilisateur, b
 	r.db.Model(&models.Utilisateur{}).Where("role_id = ?", 2).Count(&total)
 
 	offset := (page - 1) * limt
-	err := r.db.Offset(offset).Limit(limt).Where("role_id = ?", 2).Find(&utilisateurs).Error
+	err := r.db.Offset(offset).Limit(limt).Where("role_id = ?", 2).Preload("Georeperage").Find(&utilisateurs).Error
 
 	hasNextPage := int64(limt*page) <= total
 
 	return utilisateurs, hasNextPage, total, err
-}
-
-func (r *UtilisateurRepository) FindWithGeoreperage(id uint) (*models.Utilisateur, error) {
-	var utilisateur models.Utilisateur
-
-	err := r.db.Preload("Georeperage").Where("id_utilisateur = ?", id).First(&utilisateur).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &utilisateur, nil
 }
 
 func (r *UtilisateurRepository) Update(id uint, data map[string]any) error {

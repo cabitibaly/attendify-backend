@@ -76,7 +76,7 @@ func (h *AuthHandler) ConnexionAdminHandler(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": utilisateur,
+		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
 		"status":      http.StatusOK,
 	})
 }
@@ -113,7 +113,7 @@ func (h *AuthHandler) ConnexionEmployeHandler(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": utilisateur,
+		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
 		"status":      http.StatusOK,
 	})
 }

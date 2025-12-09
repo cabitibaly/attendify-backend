@@ -97,7 +97,7 @@ func (h *CongeHandler) TousLesCongésEmployeHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"conges":      conges,
+		"conges":      dto.ToCongeResponseEmpDTOList(conges),
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -128,7 +128,7 @@ func (h *CongeHandler) TousLesCongesHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"conges":      conges,
+		"conges":      dto.ToCongeResponseAdminDTOList(conges),
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -141,6 +141,15 @@ func (h *CongeHandler) LireUnCongeHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":  "Erreur de paramètre",
 			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	roleID, errRole := c.Get("roleID")
+	if !errRole {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":  "Erreur de connexion",
+			"status": http.StatusUnauthorized,
 		})
 		return
 	}
@@ -162,8 +171,15 @@ func (h *CongeHandler) LireUnCongeHandler(c *gin.Context) {
 		return
 	}
 
+	var response any
+	if roleID.(uint) == 2 {
+		response = dto.ToCongeResponseEmpDTO(conge)
+	} else {
+		response = dto.ToCongeResponseAdminDTO(conge)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"conge":  conge,
+		"conge":  response,
 		"status": http.StatusOK,
 	})
 }

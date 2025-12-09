@@ -29,10 +29,12 @@ func (s *GeorepService) CreerUnSite(georepDTO dto.GeorepDTO) error {
 	}
 
 	georep := models.Georeperage{
-		NomSite:   georepDTO.NomSite,
-		Latitude:  georepDTO.Latitude,
-		Longitude: georepDTO.Longitude,
-		Rayon:     georepDTO.Rayon,
+		NomSite:    georepDTO.NomSite,
+		Latitude:   georepDTO.Latitude,
+		Longitude:  georepDTO.Longitude,
+		Rayon:      georepDTO.Rayon,
+		HeureDebut: georepDTO.HeureDebut,
+		HeureFin:   georepDTO.HeureFin,
 	}
 
 	return s.georepRepo.Create(&georep)
