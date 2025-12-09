@@ -58,6 +58,7 @@ func Migration() error {
 		models.Conge{},
 		models.StatutConge{},
 		models.Jwt{},
+		models.Notification{},
 	)
 
 	if err != nil {

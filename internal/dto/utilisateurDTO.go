@@ -2,6 +2,7 @@ package dto
 
 type UtilisateurDTO struct {
 	Nom                      string `json:"nom"`
+	Image                    string `json:"image"`
 	Prenom                   string `json:"prenom"`
 	Email                    string `json:"email"`
 	Poste                    string `json:"poste"`
