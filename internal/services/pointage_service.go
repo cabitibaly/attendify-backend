@@ -142,3 +142,8 @@ func (s *PointageService) LireUnPointage(utilisateurID uint, date time.Time) (*m
 func (s *PointageService) SupprimerPointage(pointageID uint) error {
 	return s.pointageRepo.Delete(pointageID)
 }
+
+func (s *PointageService) Stats() (int64, int64, int64, error) {
+	totalPresent, totalRetard, err := s.pointageRepo.GetTotalPresentAndRetard()
+	return s.utilisateurRepo.GetTotalEmploye(), totalPresent, totalRetard, err
+}

@@ -25,6 +25,7 @@ func PointageRoutes(
 	admin.Use(middlewares.AuthMiddleware(authService), middlewares.AutorisationMiddleware(1))
 	{
 		admin.GET("/tous-les-pointages", pointageHandler.TousLesPointagesHandler)
+		admin.GET("/stats", pointageHandler.StatsHandler)
 		admin.DELETE("/supprimer/:id", pointageHandler.SupprimerUnPointageHandler)
 	}
 }

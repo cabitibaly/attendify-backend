@@ -110,3 +110,9 @@ func (r *UtilisateurRepository) GetSoldeConge(id uint) (int, error) {
 
 	return utilisateur.SoldeConge, nil
 }
+
+func (r *UtilisateurRepository) GetTotalEmploye() int64 {
+	var total int64
+	r.db.Model(&models.Utilisateur{}).Where("role_id = ?", 2).Count(&total)
+	return total
+}

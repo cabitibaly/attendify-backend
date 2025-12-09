@@ -216,3 +216,24 @@ func (h *PointageHandler) SupprimerUnPointageHandler(c *gin.Context) {
 		"status":  http.StatusOK,
 	})
 }
+
+func (h *PointageHandler) StatsHandler(c *gin.Context) {
+	totalEmp, totalPresent, totalRetard, err := h.service.Stats()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"totalEmploye": totalEmp,
+		"present":      totalPresent,
+		"retard":       totalRetard,
+		"absent":       totalEmp - totalPresent,
+		"tauxPresence": float64(totalPresent) / float64(totalEmp) * 100,
+		"status":       http.StatusOK,
+	})
+}

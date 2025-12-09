@@ -139,3 +139,28 @@ func (r *PointageRepository) Update(id uint, data map[string]any) error {
 func (r *PointageRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Pointage{}, id).Error
 }
+
+func (r *PointageRepository) GetTotalPresentAndRetard() (int64, int64, error) {
+	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
+
+	if errLoc != nil {
+		return 0, 0, fmt.Errorf("erreur de timezone: %w", errLoc)
+	}
+
+	aujoudhui := time.Now().In(location)
+	debutJournee := time.Date(
+		aujoudhui.Year(),
+		aujoudhui.Month(),
+		aujoudhui.Day(),
+		0, 0, 0, 0,
+		location,
+	)
+
+	finJournee := debutJournee.Add(24 * time.Hour)
+
+	var totalPresent, totalRetard int64
+	r.db.Model(&models.Pointage{}).Where("en_retard = true AND arrive >= ? AND arrive < ?", debutJournee, finJournee).Count(&totalRetard)
+	r.db.Model(&models.Pointage{}).Where("est_present = true AND arrive >= ? AND arrive < ?", debutJournee, finJournee).Count(&totalPresent)
+
+	return totalPresent, totalRetard, nil
+}
