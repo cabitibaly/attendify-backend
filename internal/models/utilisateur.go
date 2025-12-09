@@ -4,6 +4,7 @@ import "time"
 
 type Utilisateur struct {
 	IDUtilisateur               int       `gorm:"primaryKey" json:"id"`
+	Image                       string    `gorm:"type:varchar(255);default:null" json:"image"`
 	Nom                         string    `gorm:"type:varchar(20);not null" json:"nom"`
 	Prenom                      string    `gorm:"type:varchar(50)" json:"prenom"`
 	Telephone                   string    `gorm:"type:varchar(20);not null;uniqueIndex" json:"telephone"`
