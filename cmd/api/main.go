@@ -46,6 +46,10 @@ func main() {
 	pointageService := services.NewPointageService(pointageRepo, utilisateurRepo)
 	pointageHandler := handlers.NewPointageHandler(pointageService)
 
+	congeRepo := repositories.NewCongeRepository(db)
+	congeService := services.NewCongeService(congeRepo, utilisateurRepo)
+	congeHandler := handlers.NewCongeHandler(congeService)
+
 	router := gin.Default()
 
 	routes.AuthRoutes(
@@ -69,6 +73,12 @@ func main() {
 	routes.PointageRoutes(
 		router,
 		pointageHandler,
+		authService,
+	)
+
+	routes.CongeRoute(
+		router,
+		congeHandler,
 		authService,
 	)
 

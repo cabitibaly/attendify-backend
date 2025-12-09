@@ -5,6 +5,7 @@ type UtilisateurDTO struct {
 	Prenom                   string `json:"prenom"`
 	Email                    string `json:"email"`
 	Poste                    string `json:"poste"`
+	NombreConge              int    `json:"nombreConge"`
 	Telephone                string `json:"telephone"`
 	MotDePasse               string `json:"motDePasse"`
 	MotdepasseAReinitialiser bool   `json:"motdepasseAReinitialiser"`
