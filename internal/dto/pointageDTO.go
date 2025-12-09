@@ -7,9 +7,9 @@ import (
 )
 
 type PointageUtilisateurDTO struct {
-	Nom    string  `json:"nom"`
-	Prenom string  `json:"prenom"`
-	Image  *string `json:"image"`
+	Nom    string `json:"nom"`
+	Prenom string `json:"prenom"`
+	Image  string `json:"image"`
 }
 
 type PointageResponseDTO struct {
@@ -38,7 +38,7 @@ func ToPointageResponseDTO(pointage *models.Pointage) PointageResponseDTO {
 		dto.Utilisateur = PointageUtilisateurDTO{
 			Nom:    pointage.Utilisateur.Nom,
 			Prenom: pointage.Utilisateur.Prenom,
-			Image:  &pointage.Utilisateur.Image,
+			Image:  pointage.Utilisateur.Image,
 		}
 	}
 
