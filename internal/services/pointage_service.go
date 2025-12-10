@@ -12,17 +12,20 @@ import (
 )
 
 type PointageService struct {
-	pointageRepo    *repositories.PointageRepository
-	utilisateurRepo *repositories.UtilisateurRepository
+	pointageRepo     *repositories.PointageRepository
+	utilisateurRepo  *repositories.UtilisateurRepository
+	notifpushService *PushTokenService
 }
 
 func NewPointageService(
 	pointageRepo *repositories.PointageRepository,
 	utilisateurRepo *repositories.UtilisateurRepository,
+	notifpushService *PushTokenService,
 ) *PointageService {
 	return &PointageService{
-		pointageRepo:    pointageRepo,
-		utilisateurRepo: utilisateurRepo,
+		pointageRepo:     pointageRepo,
+		utilisateurRepo:  utilisateurRepo,
+		notifpushService: notifpushService,
 	}
 }
 
@@ -77,7 +80,24 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 		UtilisateurID: int(utilisateurID),
 	}
 
-	return s.pointageRepo.Create(&newPointage)
+	errCreate := s.pointageRepo.Create(&newPointage)
+	if errCreate != nil {
+		return errCreate
+	}
+
+	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+		uint(dernierPointage.UtilisateurID),
+		"Pointage d'arrivée",
+		"Bonjour, nous sommes ravie de vous revoir.\n Bonne journée !",
+	)
+
+	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+		1,
+		"Pointage d'arrivée",
+		fmt.Sprintf("%s %s est arrivé(e) a %s", employe.Nom, employe.Prenom, maintenant.Format("08:00:00")),
+	)
+
+	return nil
 }
 
 func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLongitude float64) error {
@@ -130,11 +150,29 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 		return fmt.Errorf("vous avez déjà un pointage de départ")
 	}
 
-	return s.pointageRepo.Update(uint(dernierPointage.IDPointage), map[string]any{
+	errUpdate := s.pointageRepo.Update(uint(dernierPointage.IDPointage), map[string]any{
 		"depart":            maintenant,
 		"departAnticipe":    maintenant.Before(heureFin),
 		"heuresTravaillees": maintenant.Sub(dernierPointage.Arrive).Hours(),
 	})
+
+	if errUpdate != nil {
+		return errUpdate
+	}
+
+	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+		uint(dernierPointage.UtilisateurID),
+		"Pointage de départ",
+		"Vous avez terminé votre journée, nous avons hate de vous revoir",
+	)
+
+	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+		1,
+		"Pointage de depart",
+		fmt.Sprintf("%s %s est parti(e) a %s", employe.Nom, employe.Prenom, maintenant.Format("16:00:00")),
+	)
+
+	return nil
 }
 
 func (s *PointageService) TousLesPointages(utilisateurID uint, aujourdhui bool, date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {

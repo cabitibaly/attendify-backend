@@ -4,6 +4,7 @@ import (
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/models"
 	"github.com/cabitibaly/internal/repositories"
+	"github.com/cabitibaly/pkg/utils"
 )
 
 type PushTokenService struct {
@@ -20,4 +21,18 @@ func (s *PushTokenService) EnregistrerOuModifierPushToken(pushTokenDTO dto.PushT
 		DeviceType:    pushTokenDTO.DeviceType,
 		UtilisateurID: pushTokenDTO.UtilisateurID,
 	})
+}
+
+func (s *PushTokenService) EnvoyerNotificationPushAUnUtilisateur(utilisateurID uint, title, message string) error {
+	tokens, err := s.repo.FindActivePushTokenByUtilisateurID(utilisateurID)
+	if err != nil || len(tokens) == 0 {
+		return err
+	}
+
+	for _, token := range tokens {
+		if err := utils.EnvoyerNotificationPush(token.PushToken, title, message); err != nil {
+			s.repo.DesactivePushToken(token.PushToken)
+		}
+	}
+	return nil
 }
