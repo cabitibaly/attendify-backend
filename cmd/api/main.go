@@ -54,6 +54,10 @@ func main() {
 	notifService := services.NewNoficationService(notifRepo)
 	notifHandler := handlers.NewNoficationHandler(notifService)
 
+	pushTokenRepo := repositories.NewPushTokenRepository(db)
+	pushTokenService := services.NewPushTokenService(pushTokenRepo)
+	pushTokenHandler := handlers.NewPushTokenHandler(pushTokenService)
+
 	router := gin.Default()
 
 	routes.AuthRoutes(
@@ -89,6 +93,12 @@ func main() {
 	routes.NotificationRoutes(
 		router,
 		notifHandler,
+		authService,
+	)
+
+	routes.PushTokenRoute(
+		router,
+		pushTokenHandler,
 		authService,
 	)
 
