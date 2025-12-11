@@ -44,8 +44,8 @@ func (s *GeorepService) LireUnSite(id uint) (*models.Georeperage, error) {
 	return s.georepRepo.FindByID(id)
 }
 
-func (s *GeorepService) TousLesSites(page, limit int) ([]models.Georeperage, bool, int64, error) {
-	return s.georepRepo.FindAll(page, limit)
+func (s *GeorepService) TousLesSites(recherche string, page, limit int) ([]models.Georeperage, bool, int64, error) {
+	return s.georepRepo.FindAll(recherche, page, limit)
 }
 
 func (s *GeorepService) ModifierUnSite(id uint, data map[string]any) error {

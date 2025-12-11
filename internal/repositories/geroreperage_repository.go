@@ -41,14 +41,21 @@ func (r *GeorepRepository) FindByNomSite(nomSite string) (*models.Georeperage, e
 	return &georep, nil
 }
 
-func (r *GeorepRepository) FindAll(page, limit int) ([]models.Georeperage, bool, int64, error) {
+func (r *GeorepRepository) FindAll(recherche string, page, limit int) ([]models.Georeperage, bool, int64, error) {
 	var georeps []models.Georeperage
 	var total int64
 
-	r.db.Model(&models.Georeperage{}).Count(&total)
+	db := r.db.Model(&models.Georeperage{})
+
+	if recherche != "" {
+		recherche = "%" + recherche + "%"
+		db = db.Where("nom_site LIKE ?", recherche)
+	}
+
+	db.Count(&total)
 
 	offset := (page - 1) * limit
-	err := r.db.Offset(offset).Limit(limit).Order("id_georeperage DESC").Find(&georeps).Error
+	err := db.Offset(offset).Limit(limit).Order("id_georeperage DESC").Find(&georeps).Error
 
 	hasNextPage := int64(limit*page) <= total
 

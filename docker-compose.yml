@@ -21,9 +21,22 @@ services:
       - 7080:8080
     networks:
       - app-network
+
+  redis-attendify:
+    container_name: redis-attendify
+    image: redis:8.4.0-alpine
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - app-network
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-attendify:/data
       
 volumes:
   mysql-attendify:
+  redis-attendify:
 
 networks:
   app-network:  

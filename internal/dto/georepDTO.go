@@ -26,6 +26,16 @@ type GeorepResponseDTO struct {
 	HeureFin   string  `json:"heureFin"`
 }
 
+type GeorepResponse struct {
+	Site   GeorepResponseDTO `json:"site"`
+	Status int               `json:"status"`
+}
+
+type GeorepsResponse struct {
+	Sites []GeorepResponseDTO `json:"sites"`
+	Pagination
+}
+
 func ToGeorepDTO(georep *models.Georeperage) GeorepResponseDTO {
 	return GeorepResponseDTO{
 		Id:         georep.IDGeoreperage,

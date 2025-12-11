@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
@@ -28,6 +32,12 @@ func (h *UtilisateurHandler) MesInformationsHandler(c *gin.Context) {
 		return
 	}
 
+	cacheKey := "utilisateur:" + fmt.Sprintf("%d", utilisateurID)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
 	utilisateur, errGetInfo := h.service.MesInformations(utilisateurID.(uint))
 
 	if errGetInfo != nil {
@@ -38,8 +48,18 @@ func (h *UtilisateurHandler) MesInformationsHandler(c *gin.Context) {
 		return
 	}
 
+	utilisateurFormated := dto.ToUtilisateurResponseDTO(utilisateur)
+
+	cacheValue := dto.UtilisateurResponse{
+		Utilisateur: utilisateurFormated,
+		Status:      http.StatusOK,
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
+		"utilisateur": utilisateurFormated,
 		"status":      http.StatusOK,
 	})
 }
@@ -47,6 +67,7 @@ func (h *UtilisateurHandler) MesInformationsHandler(c *gin.Context) {
 func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
+	recherche := c.Query("recherche")
 
 	if page < 1 {
 		page = 1
@@ -56,7 +77,13 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 		limit = 20
 	}
 
-	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(page, limit)
+	cacheKey := "utilisateurs:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
+	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(recherche, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -66,8 +93,22 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 		return
 	}
 
+	utilisateursFormated := dto.ToUtilisateurResponseDTOList(utilsateurs)
+
+	cacheValue := dto.UtilisateursResponse{
+		Utilisateurs: utilisateursFormated,
+		Pagination: dto.Pagination{
+			HasNextPage: hasNextPage,
+			Total:       total,
+			Status:      http.StatusOK,
+		},
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateurs": dto.ToUtilisateurResponseDTOList(utilsateurs),
+		"utilisateurs": utilisateursFormated,
 		"hasNextPage":  hasNextPage,
 		"total":        total,
 		"status":       http.StatusOK,
@@ -75,7 +116,21 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 }
 
 func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
-	utilisateurID, _ := strconv.Atoi(c.Param("id"))
+	utilisateurID, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Erreur de paramètre",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	cacheKey := "utilisateur:" + strconv.Itoa(utilisateurID)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
 
 	utilisateur, err := h.service.LireUnEmploye(uint(utilisateurID))
 
@@ -87,8 +142,18 @@ func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
 		return
 	}
 
+	utilisateurFormated := dto.ToUtilisateurResponseDTO(utilisateur)
+
+	cacheValue := dto.UtilisateurResponse{
+		Utilisateur: utilisateurFormated,
+		Status:      http.StatusOK,
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"utilisateur": dto.ToUtilisateurResponseDTO(utilisateur),
+		"utilisateur": utilisateurFormated,
 		"status":      http.StatusOK,
 	})
 }
@@ -195,6 +260,9 @@ func (h *UtilisateurHandler) SupprimerUnCompteHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	cacheKey := "utilisateur:" + strconv.Itoa(utilisateurID)
+	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Compte supprimé avec succès",

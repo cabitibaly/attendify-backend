@@ -1,11 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
@@ -87,6 +91,12 @@ func (h *CongeHandler) TousLesCongésEmployeHandler(c *gin.Context) {
 		limit = 10
 	}
 
+	cacheKey := "conges:AllEmploye:" + fmt.Sprintf("%d", utilisateurID) + ":" + strconv.Itoa(statutID) + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
 	conges, hasNextPage, total, errService := h.service.TousLesConges(utilisateurID.(uint), uint(statutID), page, limit)
 	if errService != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -96,8 +106,22 @@ func (h *CongeHandler) TousLesCongésEmployeHandler(c *gin.Context) {
 		return
 	}
 
+	congesFormated := dto.ToCongeResponseEmpDTOList(conges)
+
+	cacheValue := dto.CongesResponseEmp{
+		Conges: congesFormated,
+		Pagination: dto.Pagination{
+			HasNextPage: hasNextPage,
+			Total:       total,
+			Status:      http.StatusOK,
+		},
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"conges":      dto.ToCongeResponseEmpDTOList(conges),
+		"conges":      congesFormated,
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -118,6 +142,12 @@ func (h *CongeHandler) TousLesCongesHandler(c *gin.Context) {
 		limit = 10
 	}
 
+	cacheKey := "conges:All:" + strconv.Itoa(utilisateurID) + ":" + strconv.Itoa(statutID) + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
 	conges, hasNextPage, total, errService := h.service.TousLesConges(uint(utilisateurID), uint(statutID), page, limit)
 	if errService != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -127,8 +157,22 @@ func (h *CongeHandler) TousLesCongesHandler(c *gin.Context) {
 		return
 	}
 
+	congesFormated := dto.ToCongeResponseAdminDTOList(conges)
+
+	cacheValue := dto.CongesResponseAdmin{
+		Conges: congesFormated,
+		Pagination: dto.Pagination{
+			HasNextPage: hasNextPage,
+			Total:       total,
+			Status:      http.StatusOK,
+		},
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"conges":      dto.ToCongeResponseAdminDTOList(conges),
+		"conges":      congesFormated,
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -154,6 +198,12 @@ func (h *CongeHandler) LireUnCongeHandler(c *gin.Context) {
 		return
 	}
 
+	cacheKey := "conge:" + strconv.Itoa(id) + ":roleID:" + fmt.Sprintf("%d", roleID)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
 	conge, errService := h.service.LireUnConge(uint(id))
 	if errService != nil {
 		if errors.Is(errService, gorm.ErrRecordNotFound) {
@@ -174,8 +224,22 @@ func (h *CongeHandler) LireUnCongeHandler(c *gin.Context) {
 	var response any
 	if roleID.(uint) == 2 {
 		response = dto.ToCongeResponseEmpDTO(conge)
+		cacheValue := dto.CongeResponseEmp{
+			Conge:  response,
+			Status: http.StatusOK,
+		}
+
+		jsonData, _ := json.Marshal(cacheValue)
+		_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 	} else {
 		response = dto.ToCongeResponseAdminDTO(conge)
+		cacheValue := dto.CongeResponseAdmin{
+			Conge:  response,
+			Status: http.StatusOK,
+		}
+
+		jsonData, _ := json.Marshal(cacheValue)
+		_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -27,6 +27,26 @@ type CongeResponseAdminDTO struct {
 	Utilisateur CongeUtilisateurDTO `json:"utilisateur"`
 }
 
+type CongeResponseEmp struct {
+	Conge  any `json:"conge"`
+	Status int `json:"status"`
+}
+
+type CongesResponseEmp struct {
+	Conges []CongeDTO `json:"conges"`
+	Pagination
+}
+
+type CongesResponseAdmin struct {
+	Conges []CongeResponseAdminDTO `json:"conges"`
+	Pagination
+}
+
+type CongeResponseAdmin struct {
+	Conge  any `json:"conge"`
+	Status int `json:"status"`
+}
+
 func ToCongeResponseAdminDTO(conge *models.Conge) CongeResponseAdminDTO {
 	dto := CongeResponseAdminDTO{
 		CongeDTO: CongeDTO{

@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"strings"
+
 	"github.com/cabitibaly/internal/models"
 	"gorm.io/gorm"
 )
@@ -65,14 +67,26 @@ func (r *UtilisateurRepository) FindByEmailOrTelephone(email, telephone string) 
 	return &utilisateur, nil
 }
 
-func (r *UtilisateurRepository) FindAll(page, limt int) ([]models.Utilisateur, bool, int64, error) {
+func (r *UtilisateurRepository) FindAll(recherche string, page, limt int) ([]models.Utilisateur, bool, int64, error) {
 	var utilisateurs []models.Utilisateur
 	var total int64
 
-	r.db.Model(&models.Utilisateur{}).Where("role_id = ?", 2).Count(&total)
+	db := r.db.Model(&models.Utilisateur{}).Where("role_id = ?", 2).Order("id_utilisateur DESC")
+
+	if recherche != "" {
+		mots := strings.Fields(recherche)
+
+		for _, mot := range mots {
+			like := "%" + mot + "%"
+
+			db = db.Where("nom LIKE ? OR prenom LIKE ?", like, like)
+		}
+	}
+
+	db.Count(&total)
 
 	offset := (page - 1) * limt
-	err := r.db.Offset(offset).Limit(limt).Where("role_id = ?", 2).Preload("Georeperage").Find(&utilisateurs).Error
+	err := db.Offset(offset).Limit(limt).Preload("Georeperage").Find(&utilisateurs).Error
 
 	hasNextPage := int64(limt*page) <= total
 
