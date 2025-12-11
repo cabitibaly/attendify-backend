@@ -13,6 +13,7 @@ type Config struct {
 	DBHost     string
 	DBPort     string
 	JWTSecret  string
+	PushURL    string
 }
 
 func getEnv(key, defaultValue string) string {
@@ -37,5 +38,6 @@ func LoadConfig() *Config {
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "3312"),
 		JWTSecret:  getEnv("JWT_SECRET", ""),
+		PushURL:    getEnv("PUSH_URL", ""),
 	}
 }

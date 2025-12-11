@@ -59,6 +59,7 @@ func Migration() error {
 		models.StatutConge{},
 		models.Jwt{},
 		models.Notification{},
+		models.PushToken{},
 	)
 
 	if err != nil {

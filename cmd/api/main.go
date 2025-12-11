@@ -14,6 +14,7 @@ import (
 func main() {
 	cfg := configs.LoadConfig()
 	utils.InitializeJWTSecret(cfg.JWTSecret)
+	utils.InitializePushURL(cfg.PushURL)
 
 	if err := database.Connect(cfg); err != nil {
 		panic(err)
@@ -43,12 +44,16 @@ func main() {
 	georepService := services.NewGeorepService(georepRepo)
 	georepHandler := handlers.NewGeorepHandler(georepService)
 
+	pushTokenRepo := repositories.NewPushTokenRepository(db)
+	pushTokenService := services.NewPushTokenService(pushTokenRepo)
+	pushTokenHandler := handlers.NewPushTokenHandler(pushTokenService)
+
 	pointageRepo := repositories.NewPointageRepository(db)
-	pointageService := services.NewPointageService(pointageRepo, utilisateurRepo)
+	pointageService := services.NewPointageService(pointageRepo, utilisateurRepo, pushTokenService)
 	pointageHandler := handlers.NewPointageHandler(pointageService)
 
 	congeRepo := repositories.NewCongeRepository(db)
-	congeService := services.NewCongeService(congeRepo, utilisateurRepo, notifRepo)
+	congeService := services.NewCongeService(congeRepo, utilisateurRepo, notifRepo, pushTokenService)
 	congeHandler := handlers.NewCongeHandler(congeService)
 
 	notifService := services.NewNoficationService(notifRepo)
@@ -89,6 +94,12 @@ func main() {
 	routes.NotificationRoutes(
 		router,
 		notifHandler,
+		authService,
+	)
+
+	routes.PushTokenRoute(
+		router,
+		pushTokenHandler,
 		authService,
 	)
 

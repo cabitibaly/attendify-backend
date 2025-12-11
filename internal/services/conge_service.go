@@ -13,20 +13,23 @@ import (
 )
 
 type CongeService struct {
-	congeRepo       *repositories.CongeRepository
-	utilisateurRepo *repositories.UtilisateurRepository
-	notifRepo       *repositories.NotificationRepository
+	congeRepo        *repositories.CongeRepository
+	utilisateurRepo  *repositories.UtilisateurRepository
+	notifRepo        *repositories.NotificationRepository
+	notifpushService *PushTokenService
 }
 
 func NewCongeService(
 	congeRepo *repositories.CongeRepository,
 	utilisateurRepo *repositories.UtilisateurRepository,
 	notifRepo *repositories.NotificationRepository,
+	notifpushService *PushTokenService,
 ) *CongeService {
 	return &CongeService{
-		congeRepo:       congeRepo,
-		utilisateurRepo: utilisateurRepo,
-		notifRepo:       notifRepo,
+		congeRepo:        congeRepo,
+		utilisateurRepo:  utilisateurRepo,
+		notifRepo:        notifRepo,
+		notifpushService: notifpushService,
 	}
 }
 
@@ -108,16 +111,18 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return errCreate
 	}
 
-	errNotif := s.notifRepo.Create(&models.Notification{
+	_ = s.notifRepo.Create(&models.Notification{
 		Titre:            "Nouvelle demande",
 		Message:          "Une nouvelle demande de congé a été créée",
 		TypeNotification: "SUCCESS",
 		UtilisateurID:    1,
 	})
 
-	if errNotif != nil {
-		return errNotif
-	}
+	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+		1,
+		"Nouvelle demande",
+		"Vous avez une nouvelle demande de congé",
+	)
 
 	return nil
 }
@@ -178,15 +183,25 @@ func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
 		message = "rejetée"
 	}
 
-	errNotif := s.notifRepo.Create(&models.Notification{
+	_ = s.notifRepo.Create(&models.Notification{
 		Titre:            "Validation du congé",
 		Message:          fmt.Sprintf("Votre demande a été %s", message),
 		TypeNotification: "SUCCESS",
 		UtilisateurID:    congeExistant.UtilisateurID,
 	})
 
-	if errNotif != nil {
-		return errNotif
+	if statutID == 2 {
+		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+			uint(congeExistant.UtilisateurID),
+			"Validation du congé",
+			"Votre demande a été approuvée",
+		)
+	} else {
+		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
+			uint(congeExistant.UtilisateurID),
+			"Validation du congé",
+			"Votre demande a été rejetée",
+		)
 	}
 
 	return nil
