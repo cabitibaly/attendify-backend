@@ -25,8 +25,8 @@ func (s *UtilisateurService) MesInformations(utilisateurID uint) (*models.Utilis
 	return s.utilisateurRepo.FindByID(utilisateurID)
 }
 
-func (s *UtilisateurService) TousLesEmployes(page, limit int) ([]models.Utilisateur, bool, int64, error) {
-	return s.utilisateurRepo.FindAll(page, limit)
+func (s *UtilisateurService) TousLesEmployes(recherche string, page, limit int) ([]models.Utilisateur, bool, int64, error) {
+	return s.utilisateurRepo.FindAll(recherche, page, limit)
 }
 
 func (s *UtilisateurService) LireUnEmploye(utilisateurID uint) (*models.Utilisateur, error) {

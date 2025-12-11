@@ -67,6 +67,7 @@ func (h *UtilisateurHandler) MesInformationsHandler(c *gin.Context) {
 func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
+	recherche := c.Query("recherche")
 
 	if page < 1 {
 		page = 1
@@ -76,13 +77,13 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 		limit = 20
 	}
 
-	cacheKey := "utilisateurs:All:" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	cacheKey := "utilisateurs:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
 	if cached, err := configs.GetCache(cacheKey); err == nil {
 		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
 		return
 	}
 
-	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(page, limit)
+	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(recherche, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -96,9 +97,11 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 
 	cacheValue := dto.UtilisateursResponse{
 		Utilisateurs: utilisateursFormated,
-		HasNextPage:  hasNextPage,
-		Total:        total,
-		Status:       http.StatusOK,
+		Pagination: dto.Pagination{
+			HasNextPage: hasNextPage,
+			Total:       total,
+			Status:      http.StatusOK,
+		},
 	}
 
 	jsonData, _ := json.Marshal(cacheValue)

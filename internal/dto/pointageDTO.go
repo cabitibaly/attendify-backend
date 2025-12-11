@@ -23,6 +23,11 @@ type PointageResponseDTO struct {
 	Utilisateur       PointageUtilisateurDTO `json:"utilisateur"`
 }
 
+type PointagesResponse struct {
+	Pointages []PointageResponseDTO `json:"pointages"`
+	Pagination
+}
+
 func ToPointageResponseDTO(pointage *models.Pointage) PointageResponseDTO {
 	dto := PointageResponseDTO{
 		ID:                pointage.IDPointage,

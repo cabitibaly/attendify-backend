@@ -40,9 +40,7 @@ type UtilisateurResponse struct {
 
 type UtilisateursResponse struct {
 	Utilisateurs []UtilisateurResponseDTO `json:"utilisateurs"`
-	HasNextPage  bool                     `json:"hasNextPage"`
-	Total        int64                    `json:"total"`
-	Status       int                      `json:"status"`
+	Pagination
 }
 
 func ToUtilisateurResponseDTO(utilisateur *models.Utilisateur) UtilisateurResponseDTO {

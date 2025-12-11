@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
@@ -49,6 +52,7 @@ func (h *GeorepHandler) CreerUnSiteHandler(c *gin.Context) {
 func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
+	recherche := c.Query("recherche")
 
 	if page < 1 {
 		page = 1
@@ -58,7 +62,13 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	sites, hasNextPage, total, err := h.service.TousLesSites(page, limit)
+	cacheKey := "georep:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
+
+	sites, hasNextPage, total, err := h.service.TousLesSites(recherche, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -68,8 +78,22 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 		return
 	}
 
+	sitesFormated := dto.ToGeorepDTOList(sites)
+
+	cacheValue := dto.GeorepsResponse{
+		Sites: sitesFormated,
+		Pagination: dto.Pagination{
+			HasNextPage: hasNextPage,
+			Total:       total,
+			Status:      http.StatusOK,
+		},
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
-		"sites":       dto.ToGeorepDTOList(sites),
+		"sites":       sitesFormated,
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -78,6 +102,12 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 
 func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
+
+	cacheKey := "georep:" + strconv.Itoa(id)
+	if cached, err := configs.GetCache(cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
 
 	site, err := h.service.LireUnSite(uint(id))
 
@@ -96,6 +126,16 @@ func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	siteFormated := dto.ToGeorepDTO(site)
+
+	cacheValue := dto.GeorepResponse{
+		Site:   siteFormated,
+		Status: http.StatusOK,
+	}
+
+	jsonData, _ := json.Marshal(cacheValue)
+	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"site":   dto.ToGeorepDTO(site),
@@ -144,6 +184,9 @@ func (h *GeorepHandler) SupprimerUnSiteHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	cacheKey := "georep:" + strconv.Itoa(id)
+	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Le site a été supprimé avec succès",
