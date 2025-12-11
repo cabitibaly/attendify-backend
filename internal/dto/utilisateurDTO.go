@@ -33,6 +33,18 @@ type UtilisateurResponseDTO struct {
 	Georeperage              GeorepDTO `json:"georeperage"`
 }
 
+type UtilisateurResponse struct {
+	Utilisateur UtilisateurResponseDTO `json:"utilisateur"`
+	Status      int                    `json:"status"`
+}
+
+type UtilisateursResponse struct {
+	Utilisateurs []UtilisateurResponseDTO `json:"utilisateurs"`
+	HasNextPage  bool                     `json:"hasNextPage"`
+	Total        int64                    `json:"total"`
+	Status       int                      `json:"status"`
+}
+
 func ToUtilisateurResponseDTO(utilisateur *models.Utilisateur) UtilisateurResponseDTO {
 	dto := UtilisateurResponseDTO{
 		Id:                       utilisateur.IDUtilisateur,

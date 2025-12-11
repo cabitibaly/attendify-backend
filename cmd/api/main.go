@@ -29,6 +29,8 @@ func main() {
 	database.CreateGeoreperage()
 	database.CreateAdmin()
 
+	configs.InitRedis()
+
 	db := database.GetDB()
 
 	notifRepo := repositories.NewNotificationRepository(db)
