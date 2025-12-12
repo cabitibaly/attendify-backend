@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -118,6 +121,15 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 
 	refreshToken, accessToken, err := h.service.NouveauRefreshToken(data.Token)
 	if err != nil {
+
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
@@ -134,6 +146,18 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 }
 
 func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
+	jti, errExiste := c.Get("jti")
+
+	if !errExiste {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":  "Vous n'êtes pas connecté(e)s",
+			"status": http.StatusUnauthorized,
+		})
+		return
+	}
+
+	cacheKey := "access_token:" + jti.(string)
+
 	var data struct {
 		Token string `json:"token"`
 	}
@@ -155,6 +179,8 @@ func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Vous êtes déconnecté(e)",

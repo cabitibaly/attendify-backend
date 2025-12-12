@@ -4,7 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/cabitibaly/configs"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type JWTClaims struct {
@@ -12,6 +14,7 @@ type JWTClaims struct {
 	Email         string `json:"email"`
 	Telephone     string `json:"telephone"`
 	RoleID        uint   `json:"roleID"`
+	Jti           string `json:"jti"`
 	jwt.RegisteredClaims
 }
 
@@ -30,15 +33,24 @@ func GenerateAccessToken(utilisateurID, roleID uint, email, telephone string) (s
 
 	expireAt := time.Now().Add(24 * time.Hour).In(location)
 
+	jti := uuid.New().String()
+
 	claims := JWTClaims{
 		UtilisateurID: utilisateurID,
 		Email:         email,
 		Telephone:     telephone,
 		RoleID:        roleID,
+		Jti:           jti,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expireAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
+	}
+
+	cacheKey := "access_token:" + jti
+	err := configs.SetCache(cacheKey, jti, 24*time.Hour)
+	if err != nil {
+		return "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

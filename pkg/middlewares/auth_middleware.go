@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/services"
 	"github.com/cabitibaly/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -53,6 +54,20 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
+		redisClient := configs.RedisClient
+		ctx := configs.Ctx
+
+		cacheKey := "access_token:" + jwtClaims.Jti
+		existe, err := redisClient.Exists(ctx, cacheKey).Result()
+		if err != nil || existe == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error":  "Le token d'accès n'est pas valide",
+				"status": http.StatusUnauthorized,
+			})
+			c.Abort()
+			return
+		}
+
 		if jwtClaims.ExpiresAt.Unix() < time.Now().Unix() {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":  "votre session a expiré",
@@ -66,6 +81,7 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 		c.Set("email", jwtClaims.Email)
 		c.Set("telephone", jwtClaims.Telephone)
 		c.Set("roleID", jwtClaims.RoleID)
+		c.Set("jti", jwtClaims.Jti)
 
 		c.Next()
 	}

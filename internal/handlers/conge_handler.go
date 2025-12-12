@@ -249,6 +249,7 @@ func (h *CongeHandler) LireUnCongeHandler(c *gin.Context) {
 }
 
 func (h *CongeHandler) ModifierUnCongeHandler(c *gin.Context) {
+	roleID, _ := c.Get("roleID")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -284,6 +285,9 @@ func (h *CongeHandler) ModifierUnCongeHandler(c *gin.Context) {
 		return
 	}
 
+	cacheKey := "conge:" + strconv.Itoa(id) + ":roleID:" + fmt.Sprintf("%d", roleID)
+	_ = configs.DeleteCache(cacheKey)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "congé modifié avec succès",
 		"status":  http.StatusOK,
@@ -291,6 +295,7 @@ func (h *CongeHandler) ModifierUnCongeHandler(c *gin.Context) {
 }
 
 func (h *CongeHandler) ModifierStatutCongeHandler(c *gin.Context) {
+	roleID, _ := c.Get("roleID")
 	statutID, _ := strconv.Atoi(c.Query("statutID"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -333,6 +338,9 @@ func (h *CongeHandler) ModifierStatutCongeHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	cacheKey := "conge:" + strconv.Itoa(id) + ":roleID:" + fmt.Sprintf("%d", roleID)
+	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "statut de congé modifié avec succès",
