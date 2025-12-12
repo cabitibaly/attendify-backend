@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/cabitibaly/internal/dto"
@@ -11,20 +12,20 @@ import (
 )
 
 type AuthService struct {
-	jwtRepo         *repositories.JWTRepository
-	utilisateurRepo *repositories.UtilisateurRepository
-	georepRepo      *repositories.GeorepRepository
+	refreshTokenRepo *repositories.RefreshTokenRepository
+	utilisateurRepo  *repositories.UtilisateurRepository
+	georepRepo       *repositories.GeorepRepository
 }
 
 func NewAuthservice(
-	jwtRepo *repositories.JWTRepository,
+	refreshTokenRepo *repositories.RefreshTokenRepository,
 	utilisateurRepo *repositories.UtilisateurRepository,
 	georepRepo *repositories.GeorepRepository,
 ) *AuthService {
 	return &AuthService{
-		jwtRepo:         jwtRepo,
-		utilisateurRepo: utilisateurRepo,
-		georepRepo:      georepRepo,
+		refreshTokenRepo: refreshTokenRepo,
+		utilisateurRepo:  utilisateurRepo,
+		georepRepo:       georepRepo,
 	}
 }
 
@@ -80,54 +81,121 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 	return &utilisateur, nil
 }
 
-func (s *AuthService) Connexion(email, telephone, motDePasse string, expectedRoleID int) (*models.Utilisateur, string, error) {
+func (s *AuthService) Connexion(email, telephone, motDePasse string, expectedRoleID int) (*models.Utilisateur, string, string, error) {
 
 	if email == "" && telephone == "" {
-		return nil, "", fmt.Errorf("email ou telephone est obligatoire")
+		return nil, "", "", fmt.Errorf("email ou telephone est obligatoire")
 	}
 
 	if motDePasse == "" {
-		return nil, "", fmt.Errorf("mot de passe est obligatoire")
+		return nil, "", "", fmt.Errorf("mot de passe est obligatoire")
 	}
 
 	utilisateurExist, _ := s.utilisateurRepo.FindByEmailOrTelephone(email, telephone)
 
 	if utilisateurExist == nil {
-		return nil, "", fmt.Errorf("vos identifiants sont incorrects")
+		return nil, "", "", fmt.Errorf("vos identifiants sont incorrects")
 	}
 
 	if utilisateurExist.RoleID != expectedRoleID {
-		return nil, "", fmt.Errorf("vous n'avez pas les droits d'utiliser cette ressource")
+		return nil, "", "", fmt.Errorf("vous n'avez pas les droits d'utiliser cette ressource")
 	}
 
 	if !utils.ComparePassword(motDePasse, utilisateurExist.MotDePasse) {
-		return nil, "", fmt.Errorf("vos identifiants sont incorrects")
+		return nil, "", "", fmt.Errorf("vos identifiants sont incorrects")
 	}
 
-	tokenString, err := utils.GenerateToken(
+	accessToken, errAT := utils.GenerateAccessToken(
 		uint(utilisateurExist.IDUtilisateur),
 		uint(utilisateurExist.RoleID),
 		utilisateurExist.Email,
 		utilisateurExist.Telephone,
 	)
-
-	if err != nil {
-		return nil, "", fmt.Errorf("une erreur est survenue, veuillez réessayer")
+	if errAT != nil {
+		log.Println("Une erreur est survenue lors de la génération du token d'accès :", errAT)
+		return nil, "", "", fmt.Errorf("une erreur est survenue lors de la génération du token d'accès")
 	}
 
-	jwt := &models.Jwt{
-		Token:         tokenString,
+	refreshToken, expireTime, errRT := utils.GenerateRefreshToken(
+		uint(utilisateurExist.IDUtilisateur),
+		uint(utilisateurExist.RoleID),
+		utilisateurExist.Email,
+		utilisateurExist.Telephone,
+	)
+	if errRT != nil {
+		log.Println("Une erreur est survenue lors de la génération du refresh token :", errRT)
+		return nil, "", "", fmt.Errorf("une erreur est survenue lors de la génération du refresh token")
+	}
+
+	jwt := &models.RefreshToken{
+		Token:         refreshToken,
 		UtilisateurID: uint(utilisateurExist.IDUtilisateur),
-		ExpireAt:      time.Now().Add(time.Hour * 72),
+		ExpireAt:      *expireTime,
 	}
 
-	erreur := s.jwtRepo.Create(jwt)
+	erreur := s.refreshTokenRepo.Create(jwt)
 
 	if erreur != nil {
-		return nil, "", fmt.Errorf("une erreur est survenue, veuillez réessayer")
+		return nil, "", "", fmt.Errorf("une erreur est survenue, veuillez réessayer")
 	}
 
-	return utilisateurExist, tokenString, nil
+	return utilisateurExist, refreshToken, accessToken, nil
+}
+
+func (s *AuthService) Deconnexion(token string) error {
+	return s.refreshTokenRepo.DeleteByToken(token)
+}
+
+func (s *AuthService) NouveauRefreshToken(refreshToken string) (string, string, error) {
+	ancienRT, err := s.refreshTokenRepo.FindByToken(refreshToken)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	location, _ := time.LoadLocation("Africa/Ouagadougou")
+	maintenat := time.Now().In(location)
+	if maintenat.After(ancienRT.ExpireAt) || ancienRT.RevokedAt != nil {
+		return "", "", fmt.Errorf("le refresh token a expiré ou a été révoqué")
+	}
+
+	accessToken, errAT := utils.GenerateAccessToken(
+		ancienRT.UtilisateurID,
+		uint(ancienRT.Utilisateur.RoleID),
+		ancienRT.Utilisateur.Email,
+		ancienRT.Utilisateur.Telephone,
+	)
+	if errAT != nil {
+		log.Println("Une erreur est survenue lors de la génération du token d'accès :", errAT)
+		return "", "", fmt.Errorf("une erreur est survenue lors de la génération du token d'accès")
+	}
+
+	newRefreshToken, expireTime, errRT := utils.GenerateRefreshToken(
+		ancienRT.UtilisateurID,
+		uint(ancienRT.Utilisateur.RoleID),
+		ancienRT.Utilisateur.Email,
+		ancienRT.Utilisateur.Telephone,
+	)
+	if errRT != nil {
+		log.Println("Une erreur est survenue lors de la génération du refresh token :", errRT)
+		return "", "", fmt.Errorf("une erreur est survenue lors de la génération du refresh token")
+	}
+
+	s.refreshTokenRepo.Delete(uint(ancienRT.ID))
+
+	token := &models.RefreshToken{
+		Token:         newRefreshToken,
+		ExpireAt:      *expireTime,
+		UtilisateurID: ancienRT.UtilisateurID,
+	}
+
+	err = s.refreshTokenRepo.Create(token)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return newRefreshToken, accessToken, nil
 }
 
 func (s *AuthService) ReinitialiserMotDePasse(utilisateurID uint) (string, error) {

@@ -166,6 +166,9 @@ func (h *GeorepHandler) ModifierUnSiteHandler(c *gin.Context) {
 		return
 	}
 
+	cacheKey := "georep:" + strconv.Itoa(id)
+	_ = configs.DeleteCache(cacheKey)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Le site a été modifié avec succès",
 		"status":  http.StatusOK,

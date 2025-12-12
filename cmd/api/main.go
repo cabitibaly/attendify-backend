@@ -13,7 +13,7 @@ import (
 
 func main() {
 	cfg := configs.LoadConfig()
-	utils.InitializeJWTSecret(cfg.JWTSecret)
+	utils.InitializeJWTSecret(cfg.JWTSecret, cfg.RefreshTokenSecret)
 	utils.InitializePushURL(cfg.PushURL)
 
 	if err := database.Connect(cfg); err != nil {
@@ -34,7 +34,7 @@ func main() {
 	db := database.GetDB()
 
 	notifRepo := repositories.NewNotificationRepository(db)
-	authRepo := repositories.NewJWTRepository(db)
+	authRepo := repositories.NewRefreshTokenRepository(db)
 	georepRepo := repositories.NewGeorepRepository(db)
 	utilisateurRepo := repositories.NewUtilisateurRepository(db)
 	utilisateurService := services.NewUtilisateurService(utilisateurRepo, authRepo)

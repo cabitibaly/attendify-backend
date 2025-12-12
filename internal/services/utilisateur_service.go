@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cabitibaly/internal/models"
 	"github.com/cabitibaly/internal/repositories"
@@ -11,13 +10,13 @@ import (
 
 type UtilisateurService struct {
 	utilisateurRepo *repositories.UtilisateurRepository
-	jwtRepo         *repositories.JWTRepository
+	refreshToken    *repositories.RefreshTokenRepository
 }
 
-func NewUtilisateurService(utilisateurRepo *repositories.UtilisateurRepository, jwtRepo *repositories.JWTRepository) *UtilisateurService {
+func NewUtilisateurService(utilisateurRepo *repositories.UtilisateurRepository, refreshToken *repositories.RefreshTokenRepository) *UtilisateurService {
 	return &UtilisateurService{
 		utilisateurRepo: utilisateurRepo,
-		jwtRepo:         jwtRepo,
+		refreshToken:    refreshToken,
 	}
 }
 
@@ -33,7 +32,7 @@ func (s *UtilisateurService) LireUnEmploye(utilisateurID uint) (*models.Utilisat
 	return s.utilisateurRepo.FindByID(utilisateurID)
 }
 
-func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, token string, data map[string]any) (string, error) {
+func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, refreshToken string, data map[string]any) (string, error) {
 	utilisateurExist, err := s.utilisateurRepo.FindByID(utilisateurID)
 
 	if err != nil {
@@ -43,7 +42,7 @@ func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, token string,
 	emailChanged := data["email"] != nil && data["email"] != utilisateurExist.Email
 	telephoneChanged := data["telephone"] != nil && data["telephone"] != utilisateurExist.Telephone
 
-	tokenString := ""
+	refreshTokenString := ""
 
 	if emailChanged || telephoneChanged {
 
@@ -65,21 +64,21 @@ func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, token string,
 			return "", fmt.Errorf("cet numero de telephone est déjà utilisé")
 		}
 
-		tokenDB, err := s.jwtRepo.FindByTokenAndUtilisateurID(token, utilisateurID)
+		tokenDB, err := s.refreshToken.FindByTokenAndUtilisateurID(refreshToken, utilisateurID)
 
 		if err != nil {
 			return "", err
 		}
 
 		if tokenDB != nil {
-			err := s.jwtRepo.Delete(uint(tokenDB.ID))
+			err := s.refreshToken.Delete(uint(tokenDB.ID))
 
 			if err != nil {
 				return "", err
 			}
 		}
 
-		tokenGenerer, err := utils.GenerateToken(
+		tokenGenerer, expireTime, err := utils.GenerateRefreshToken(
 			uint(utilisateurExist.IDUtilisateur),
 			uint(utilisateurExist.RoleID),
 			nouvelEmail,
@@ -90,22 +89,22 @@ func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, token string,
 			return "", err
 		}
 
-		jwt := &models.Jwt{
+		jwt := &models.RefreshToken{
 			Token:         tokenGenerer,
 			UtilisateurID: uint(utilisateurExist.IDUtilisateur),
-			ExpireAt:      time.Now().Add(time.Hour * 72),
+			ExpireAt:      *expireTime,
 		}
 
-		err = s.jwtRepo.Create(jwt)
+		err = s.refreshToken.Create(jwt)
 
 		if err != nil {
 			return "", err
 		}
 
-		tokenString = tokenGenerer
+		refreshTokenString = tokenGenerer
 	}
 
-	return tokenString, s.utilisateurRepo.Update(utilisateurID, data)
+	return refreshTokenString, s.utilisateurRepo.Update(utilisateurID, data)
 }
 
 func (s *UtilisateurService) ModifierSonMotDePasse(utilisateurID uint, ancien, nouveau string) error {

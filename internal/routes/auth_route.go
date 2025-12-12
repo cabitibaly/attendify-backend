@@ -16,12 +16,12 @@ func AuthRoutes(
 
 	auth.POST("/connexion-admin", authHandler.ConnexionAdminHandler)
 	auth.POST("/connexion-employe", authHandler.ConnexionEmployeHandler)
+	auth.POST("/refresh-token", authHandler.RefreshTokenHandler)
 
-	auth.Use(
-		middlewares.AuthMiddleware(authService),
-		middlewares.AutorisationMiddleware(1),
-	)
+	auth.Use(middlewares.AuthMiddleware(authService))
+	auth.POST("/deconnexion", authHandler.DeconnexionHandler)
 
+	auth.Use(middlewares.AutorisationMiddleware(1))
 	auth.POST("/nouveau-compte-employe", authHandler.CreerUnCompteHandler)
 	auth.PATCH("/reinitialiser-mot-de-passe/:id", authHandler.ReinitialiserMotDePasseHandler)
 }

@@ -162,9 +162,8 @@ func (h *UtilisateurHandler) ModifierSonCompteHandler(c *gin.Context) {
 	var data map[string]any
 
 	utilisateurID, err := c.Get("utilisateurID")
-	token, errToken := c.Get("token")
 
-	if !err || !errToken {
+	if !err {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":  "Vous n'êtes pas connecté(e)s",
 			"status": http.StatusUnauthorized,
@@ -179,7 +178,18 @@ func (h *UtilisateurHandler) ModifierSonCompteHandler(c *gin.Context) {
 		return
 	}
 
-	nouveauToken, errService := h.service.ModifierSonCompte(utilisateurID.(uint), token.(string), data)
+	if data["refresh_token"] == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":  "Un parametre manquant",
+			"status": http.StatusUnauthorized,
+		})
+		return
+	}
+
+	refreshToken := data["refresh_token"].(string)
+	delete(data, "refresh_token")
+
+	nouveauRefreshToken, errService := h.service.ModifierSonCompte(utilisateurID.(uint), refreshToken, data)
 
 	if errService != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -189,17 +199,17 @@ func (h *UtilisateurHandler) ModifierSonCompteHandler(c *gin.Context) {
 		return
 	}
 
-	if nouveauToken != "" {
-		c.SetCookie(
-			"jwt",
-			nouveauToken,
-			3600*24*3,
-			"/",
-			"",
-			false,
-			true,
-		)
+	if nouveauRefreshToken != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"message":       "Compte modifié avec succès",
+			"refresh_token": nouveauRefreshToken,
+			"status":        http.StatusOK,
+		})
+		return
 	}
+
+	cacheKey := "utilisateur:" + fmt.Sprintf("%d", utilisateurID)
+	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Compte modifié avec succès",
