@@ -16,6 +16,8 @@ func AuthRoutes(
 
 	auth.POST("/connexion-admin", authHandler.ConnexionAdminHandler)
 	auth.POST("/connexion-employe", authHandler.ConnexionEmployeHandler)
+	auth.POST("/deconnexion", authHandler.DeconnexionHandler)
+	auth.POST("/refresh-token", authHandler.RefreshTokenHandler)
 
 	auth.Use(
 		middlewares.AuthMiddleware(authService),

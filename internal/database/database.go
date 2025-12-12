@@ -57,7 +57,7 @@ func Migration() error {
 		models.Pointage{},
 		models.Conge{},
 		models.StatutConge{},
-		models.Jwt{},
+		models.RefreshToken{},
 		models.Notification{},
 		models.PushToken{},
 	)

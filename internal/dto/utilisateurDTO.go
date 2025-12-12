@@ -1,8 +1,6 @@
 package dto
 
 import (
-	"log"
-
 	"github.com/cabitibaly/internal/models"
 )
 
@@ -57,10 +55,9 @@ func ToUtilisateurResponseDTO(utilisateur *models.Utilisateur) UtilisateurRespon
 		MotdepasseAReinitialiser: utilisateur.MotdepasseAReinitialiser,
 	}
 
-	log.Println("georep:", utilisateur.Georeperage)
-
 	if utilisateur.Georeperage != nil {
 		dto.Georeperage = GeorepDTO{
+			Id:        utilisateur.Georeperage.IDGeoreperage,
 			NomSite:   utilisateur.Georeperage.NomSite,
 			Latitude:  utilisateur.Georeperage.Latitude,
 			Longitude: utilisateur.Georeperage.Longitude,
