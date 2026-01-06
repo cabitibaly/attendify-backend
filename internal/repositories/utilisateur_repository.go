@@ -22,7 +22,7 @@ func (r *UtilisateurRepository) Create(utilsateur *models.Utilisateur) error {
 func (r *UtilisateurRepository) FindByID(id uint) (*models.Utilisateur, error) {
 	var utilisateur models.Utilisateur
 
-	err := r.db.Preload("Georeperage").First(&utilisateur, id).Error
+	err := r.db.Preload("Site").First(&utilisateur, id).Error
 
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (r *UtilisateurRepository) FindAll(recherche string, page, limt int) ([]mod
 	db.Count(&total)
 
 	offset := (page - 1) * limt
-	err := db.Offset(offset).Limit(limt).Preload("Georeperage").Find(&utilisateurs).Error
+	err := db.Offset(offset).Limit(limt).Preload("Site").Find(&utilisateurs).Error
 
 	hasNextPage := int64(limt*page) <= total
 

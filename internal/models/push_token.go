@@ -9,7 +9,7 @@ type PushToken struct {
 	DeviceName                string    `gorm:"type:varchar(100)" json:"device_name"`
 	Platform                  string    `gorm:"type:varchar(20)" json:"platform"`
 	EstActive                 bool      `gorm:"default:true" json:"est_active"`
-	UtilisateurID             int       `gorm:"type:int" json:"utilisateurID"`
+	UtilisateurID             int       `gorm:"type:int" json:"utilisateur_id"`
 	DateCreationPushToken     time.Time `gorm:"autoCreateTime" json:"date_creation"`
 	DateModificationPushToken time.Time `gorm:"autoUpdateTime" json:"date_modification"`
 }

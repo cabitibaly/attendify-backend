@@ -39,9 +39,9 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 	if !utils.EstDansLaZone(
 		empLatitude,
 		empLongitude,
-		employe.Georeperage.Latitude,
-		employe.Georeperage.Longitude,
-		employe.Georeperage.Rayon,
+		employe.Site.Latitude,
+		employe.Site.Longitude,
+		employe.Site.Rayon,
 	) {
 		return fmt.Errorf("vous n'êtes pas sur site")
 	}
@@ -52,9 +52,9 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 		return fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
-	heureDebutGeorep := employe.Georeperage.HeureDebut.Hour()
-	minuteDebutGeorep := employe.Georeperage.HeureDebut.Minute()
-	secondeDebutGeorep := employe.Georeperage.HeureDebut.Second()
+	heureDebutGeorep := employe.Site.HeureDebut.Hour()
+	minuteDebutGeorep := employe.Site.HeureDebut.Minute()
+	secondeDebutGeorep := employe.Site.HeureDebut.Second()
 
 	maintenant := time.Now().In(location)
 	heureDebut := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureDebutGeorep, minuteDebutGeorep, secondeDebutGeorep, 0, location)
@@ -86,7 +86,7 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 	}
 
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
-		uint(dernierPointage.UtilisateurID),
+		uint(utilisateurID),
 		"Pointage d'arrivée",
 		"Bonjour, nous sommes ravie de vous revoir.\n Bonne journée !",
 	)
@@ -110,9 +110,9 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 	if !utils.EstDansLaZone(
 		empLatitude,
 		empLongitude,
-		employe.Georeperage.Latitude,
-		employe.Georeperage.Longitude,
-		employe.Georeperage.Rayon,
+		employe.Site.Latitude,
+		employe.Site.Longitude,
+		employe.Site.Rayon,
 	) {
 		return fmt.Errorf("vous n'êtes pas sur site")
 	}
@@ -123,9 +123,9 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 		return fmt.Errorf("erreur de timezone: %w", errLoc)
 	}
 
-	heureFinGeorep := employe.Georeperage.HeureFin.Hour()
-	minuteFinGeorep := employe.Georeperage.HeureFin.Minute()
-	secondeFinGeorep := employe.Georeperage.HeureFin.Second()
+	heureFinGeorep := employe.Site.HeureFin.Hour()
+	minuteFinGeorep := employe.Site.HeureFin.Minute()
+	secondeFinGeorep := employe.Site.HeureFin.Second()
 
 	maintenant := time.Now().In(location)
 	heureFin := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureFinGeorep, minuteFinGeorep, secondeFinGeorep, 0, location)

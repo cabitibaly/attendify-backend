@@ -14,18 +14,18 @@ import (
 type AuthService struct {
 	refreshTokenRepo *repositories.RefreshTokenRepository
 	utilisateurRepo  *repositories.UtilisateurRepository
-	georepRepo       *repositories.GeorepRepository
+	siteRepo         *repositories.SiteRepository
 }
 
 func NewAuthservice(
 	refreshTokenRepo *repositories.RefreshTokenRepository,
 	utilisateurRepo *repositories.UtilisateurRepository,
-	georepRepo *repositories.GeorepRepository,
+	siteRepo *repositories.SiteRepository,
 ) *AuthService {
 	return &AuthService{
 		refreshTokenRepo: refreshTokenRepo,
 		utilisateurRepo:  utilisateurRepo,
-		georepRepo:       georepRepo,
+		siteRepo:         siteRepo,
 	}
 }
 
@@ -38,11 +38,11 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 		return nil, fmt.Errorf("nom, email, poste, telephone et mot de passe sont obligatoires")
 	}
 
-	if utilisateurDTO.GeoreperageID == 0 {
+	if utilisateurDTO.SiteID == 0 {
 		return nil, fmt.Errorf("vous devez sélectionner un site")
 	}
 
-	if _, err := s.georepRepo.FindByID(uint(utilisateurDTO.GeoreperageID)); err != nil {
+	if _, err := s.siteRepo.FindByID(uint(utilisateurDTO.SiteID)); err != nil {
 		return nil, fmt.Errorf("le site sélectionné n'existe pas")
 	}
 
@@ -69,7 +69,7 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 		MotdepasseAReinitialiser: true,
 		MotDePasse:               hashedPassword,
 		RoleID:                   2,
-		GeoreperageID:            utilisateurDTO.GeoreperageID,
+		SiteID:                   utilisateurDTO.SiteID,
 	}
 
 	err = s.utilisateurRepo.Create(&utilisateur)

@@ -14,16 +14,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type GeorepHandler struct {
-	service *services.GeorepService
+type SiteHandler struct {
+	service *services.SiteService
 }
 
-func NewGeorepHandler(service *services.GeorepService) *GeorepHandler {
-	return &GeorepHandler{service: service}
+func NewSiteHandler(service *services.SiteService) *SiteHandler {
+	return &SiteHandler{service: service}
 }
 
-func (h *GeorepHandler) CreerUnSiteHandler(c *gin.Context) {
-	var data dto.GeorepDTO
+func (h *SiteHandler) CreerUnSiteHandler(c *gin.Context) {
+	var data dto.SiteDTO
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -49,7 +49,7 @@ func (h *GeorepHandler) CreerUnSiteHandler(c *gin.Context) {
 	})
 }
 
-func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
+func (h *SiteHandler) TousLesSitesHandler(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	recherche := c.Query("recherche")
@@ -62,7 +62,7 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	cacheKey := "georep:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
+	cacheKey := "site:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
 	if cached, err := configs.GetCache(cacheKey); err == nil {
 		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
 		return
@@ -78,9 +78,9 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 		return
 	}
 
-	sitesFormated := dto.ToGeorepDTOList(sites)
+	sitesFormated := dto.ToSiteDTOList(sites)
 
-	cacheValue := dto.GeorepsResponse{
+	cacheValue := dto.SitesResponse{
 		Sites: sitesFormated,
 		Pagination: dto.Pagination{
 			HasNextPage: hasNextPage,
@@ -100,10 +100,10 @@ func (h *GeorepHandler) TousLesSitesHandler(c *gin.Context) {
 	})
 }
 
-func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
+func (h *SiteHandler) LireUnSiteHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	cacheKey := "georep:" + strconv.Itoa(id)
+	cacheKey := "site:" + strconv.Itoa(id)
 	if cached, err := configs.GetCache(cacheKey); err == nil {
 		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
 		return
@@ -127,9 +127,9 @@ func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 		return
 	}
 
-	siteFormated := dto.ToGeorepDTO(site)
+	siteFormated := dto.ToSiteDTO(site)
 
-	cacheValue := dto.GeorepResponse{
+	cacheValue := dto.SiteResponse{
 		Site:   siteFormated,
 		Status: http.StatusOK,
 	}
@@ -138,13 +138,13 @@ func (h *GeorepHandler) LireUnSiteHandler(c *gin.Context) {
 	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
-		"site":   dto.ToGeorepDTO(site),
+		"site":   dto.ToSiteDTO(site),
 		"status": http.StatusOK,
 	})
 
 }
 
-func (h *GeorepHandler) ModifierUnSiteHandler(c *gin.Context) {
+func (h *SiteHandler) ModifierUnSiteHandler(c *gin.Context) {
 	var data map[string]any
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -166,7 +166,7 @@ func (h *GeorepHandler) ModifierUnSiteHandler(c *gin.Context) {
 		return
 	}
 
-	cacheKey := "georep:" + strconv.Itoa(id)
+	cacheKey := "site:" + strconv.Itoa(id)
 	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -175,7 +175,7 @@ func (h *GeorepHandler) ModifierUnSiteHandler(c *gin.Context) {
 	})
 }
 
-func (h *GeorepHandler) SupprimerUnSiteHandler(c *gin.Context) {
+func (h *SiteHandler) SupprimerUnSiteHandler(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	err := h.service.SupprimerUnSite(uint(id))
@@ -188,7 +188,7 @@ func (h *GeorepHandler) SupprimerUnSiteHandler(c *gin.Context) {
 		return
 	}
 
-	cacheKey := "georep:" + strconv.Itoa(id)
+	cacheKey := "site:" + strconv.Itoa(id)
 	_ = configs.DeleteCache(cacheKey)
 
 	c.JSON(http.StatusOK, gin.H{

@@ -14,21 +14,21 @@ type UtilisateurDTO struct {
 	Telephone                string `json:"telephone"`
 	MotDePasse               string `json:"motDePasse"`
 	MotdepasseAReinitialiser bool   `json:"motdepasseAReinitialiser"`
-	GeoreperageID            int    `json:"georeperageID"`
+	SiteID                   int    `json:"siteID"`
 }
 
 type UtilisateurResponseDTO struct {
-	Id                       int       `json:"id"`
-	Image                    string    `json:"image"`
-	Nom                      string    `json:"nom"`
-	Prenom                   string    `json:"prenom"`
-	Email                    string    `json:"email"`
-	Poste                    string    `json:"poste"`
-	Telephone                string    `json:"telephone"`
-	NombreConge              int       `json:"nombreConge"`
-	SoldeConge               int       `json:"soldeConge"`
-	MotdepasseAReinitialiser bool      `json:"motdepasseAReinitialiser"`
-	Georeperage              GeorepDTO `json:"georeperage"`
+	Id                       int     `json:"id"`
+	Image                    string  `json:"image"`
+	Nom                      string  `json:"nom"`
+	Prenom                   string  `json:"prenom"`
+	Email                    string  `json:"email"`
+	Poste                    string  `json:"poste"`
+	Telephone                string  `json:"telephone"`
+	NombreConge              int     `json:"nombreConge"`
+	SoldeConge               int     `json:"soldeConge"`
+	MotdepasseAReinitialiser bool    `json:"motdepasseAReinitialiser"`
+	Site                     SiteDTO `json:"site"`
 }
 
 type UtilisateurResponse struct {
@@ -55,13 +55,13 @@ func ToUtilisateurResponseDTO(utilisateur *models.Utilisateur) UtilisateurRespon
 		MotdepasseAReinitialiser: utilisateur.MotdepasseAReinitialiser,
 	}
 
-	if utilisateur.Georeperage != nil {
-		dto.Georeperage = GeorepDTO{
-			Id:        utilisateur.Georeperage.IDGeoreperage,
-			NomSite:   utilisateur.Georeperage.NomSite,
-			Latitude:  utilisateur.Georeperage.Latitude,
-			Longitude: utilisateur.Georeperage.Longitude,
-			Rayon:     utilisateur.Georeperage.Rayon,
+	if utilisateur.Site != nil {
+		dto.Site = SiteDTO{
+			Id:        utilisateur.Site.IDSite,
+			NomSite:   utilisateur.Site.NomSite,
+			Latitude:  utilisateur.Site.Latitude,
+			Longitude: utilisateur.Site.Longitude,
+			Rayon:     utilisateur.Site.Rayon,
 		}
 	}
 

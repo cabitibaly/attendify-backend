@@ -26,7 +26,7 @@ func main() {
 
 	database.IntDefaultRole()
 	database.InitDefaultStatutConge()
-	database.CreateGeoreperage()
+	database.CreateSite()
 	database.CreateAdmin()
 
 	configs.InitRedis()
@@ -35,16 +35,16 @@ func main() {
 
 	notifRepo := repositories.NewNotificationRepository(db)
 	authRepo := repositories.NewRefreshTokenRepository(db)
-	georepRepo := repositories.NewGeorepRepository(db)
+	siteRepo := repositories.NewSiteRepository(db)
 	utilisateurRepo := repositories.NewUtilisateurRepository(db)
 	utilisateurService := services.NewUtilisateurService(utilisateurRepo, authRepo)
 	utilisateurHandler := handlers.NewUtilisateurHandler(utilisateurService)
 
-	authService := services.NewAuthservice(authRepo, utilisateurRepo, georepRepo)
+	authService := services.NewAuthservice(authRepo, utilisateurRepo, siteRepo)
 	authHandler := handlers.NewAuthandler(authService)
 
-	georepService := services.NewGeorepService(georepRepo)
-	georepHandler := handlers.NewGeorepHandler(georepService)
+	siteService := services.NewSiteService(siteRepo)
+	siteHandler := handlers.NewSiteHandler(siteService)
 
 	pushTokenRepo := repositories.NewPushTokenRepository(db)
 	pushTokenService := services.NewPushTokenService(pushTokenRepo)
@@ -75,9 +75,9 @@ func main() {
 		authService,
 	)
 
-	routes.GeorepRoutes(
+	routes.SiteRoutes(
 		router,
-		georepHandler,
+		siteHandler,
 		authService,
 	)
 

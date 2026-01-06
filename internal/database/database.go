@@ -53,7 +53,7 @@ func Migration() error {
 	err := DB.AutoMigrate(
 		models.Utilisateur{},
 		models.Role{},
-		models.Georeperage{},
+		models.Site{},
 		models.Pointage{},
 		models.Conge{},
 		models.StatutConge{},
@@ -97,17 +97,17 @@ func InitDefaultStatutConge() {
 	}
 }
 
-func CreateGeoreperage() {
-	var georep models.Georeperage
-	err := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&georep).Error
+func CreateSite() {
+	var site models.Site
+	err := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&site).Error
 
 	if err != nil {
-		georep.NomSite = "POWERTECH BOBO site 22"
-		georep.Latitude = 11.1895678
-		georep.Longitude = -4.3152317
-		georep.Rayon = 100
+		site.NomSite = "POWERTECH BOBO site 22"
+		site.Latitude = 11.1895678
+		site.Longitude = -4.3152317
+		site.Rayon = 100
 
-		DB.Create(&georep)
+		DB.Create(&site)
 	}
 }
 
@@ -122,9 +122,9 @@ func CreateAdmin() {
 			panic(err)
 		}
 
-		var georep models.Georeperage
+		var site models.Site
 
-		erreur := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&georep).Error
+		erreur := DB.Where("nom_site = ?", "POWERTECH BOBO site 22").First(&site).Error
 
 		if erreur != nil {
 			panic(erreur)
@@ -136,7 +136,7 @@ func CreateAdmin() {
 		utilisateur.Poste = "Directeur"
 		utilisateur.Telephone = "64141525"
 		utilisateur.RoleID = 1
-		utilisateur.GeoreperageID = georep.IDGeoreperage
+		utilisateur.SiteID = site.IDSite
 		utilisateur.MotDePasse = hashedPassword
 
 		DB.Create(&utilisateur)

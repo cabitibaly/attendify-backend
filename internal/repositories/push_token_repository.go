@@ -37,7 +37,7 @@ func (r *PushTokenRepository) CreateOrUpdate(pushToken *models.PushToken) error 
 func (r *PushTokenRepository) FindActivePushTokenByUtilisateurID(utilisateurID uint) ([]models.PushToken, error) {
 	var pushTokens []models.PushToken
 
-	err := r.db.Where("utilisateurID = ? AND est_active = ?", utilisateurID, 1).Find(pushTokens).Error
+	err := r.db.Where("utilisateur_id = ? AND est_active = ?", utilisateurID, 1).Find(&pushTokens).Error
 	return pushTokens, err
 }
 

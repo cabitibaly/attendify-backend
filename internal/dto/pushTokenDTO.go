@@ -6,5 +6,5 @@ type PushTokenDTO struct {
 	DeviceName    string `json:"device_name"`
 	Platform      string `json:"platform"`
 	EstActive     bool   `json:"est_active"`
-	UtilisateurID int    `json:"utilisateurID"`
+	UtilisateurID int    `json:"utilisateur_id"`
 }

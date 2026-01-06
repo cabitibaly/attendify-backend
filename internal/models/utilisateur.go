@@ -15,13 +15,13 @@ type Utilisateur struct {
 	MotdepasseAReinitialiser    bool      `gorm:"default:true" json:"motdepasseAReinitialiser"`
 	MotDePasse                  string    `gorm:"type:varchar(100);not null" json:"-"`
 	RoleID                      int       `gorm:"type:int" json:"roleID"`
-	GeoreperageID               int       `gorm:"type:int" json:"georeperageID"`
+	SiteID                      int       `gorm:"type:int" json:"siteID"`
 	DateCreationUtilisateur     time.Time `gorm:"autoCreateTime" json:"dateCreation"`
 	DateModificationUtilisateur time.Time `gorm:"autoUpdateTime" json:"dateModification"`
 
 	// Relations
-	Role        *Role        `gorm:"foreignKey:RoleID;references:IDRole" json:"-"`
-	Georeperage *Georeperage `gorm:"foreignKey:GeoreperageID;references:IDGeoreperage;constraint:OnDelete:SET NULL;" json:"-"`
+	Role *Role `gorm:"foreignKey:RoleID;references:IDRole" json:"-"`
+	Site *Site `gorm:"foreignKey:SiteID;references:IDSite;constraint:OnDelete:SET NULL;" json:"-"`
 }
 
 func (u *Utilisateur) TableName() string {
