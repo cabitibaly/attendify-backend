@@ -81,9 +81,9 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 	return &utilisateur, nil
 }
 
-func (s *AuthService) Connexion(email, telephone, motDePasse string, expectedRoleID int) (*models.Utilisateur, string, string, error) {
+func (s *AuthService) Connexion(username, motDePasse string, expectedRoleID int) (*models.Utilisateur, string, string, error) {
 
-	if email == "" && telephone == "" {
+	if username == "" {
 		return nil, "", "", fmt.Errorf("email ou telephone est obligatoire")
 	}
 
@@ -91,7 +91,7 @@ func (s *AuthService) Connexion(email, telephone, motDePasse string, expectedRol
 		return nil, "", "", fmt.Errorf("mot de passe est obligatoire")
 	}
 
-	utilisateurExist, _ := s.utilisateurRepo.FindByEmailOrTelephone(email, telephone)
+	utilisateurExist, _ := s.utilisateurRepo.FindByEmailOrTelephone(username)
 
 	if utilisateurExist == nil {
 		return nil, "", "", fmt.Errorf("vos identifiants sont incorrects")

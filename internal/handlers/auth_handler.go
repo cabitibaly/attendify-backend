@@ -59,7 +59,7 @@ func (h *AuthHandler) ConnexionAdminHandler(c *gin.Context) {
 		return
 	}
 
-	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Email, data.Telephone, data.MotDePasse, 1)
+	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Username, data.MotDePasse, 1)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -88,7 +88,7 @@ func (h *AuthHandler) ConnexionEmployeHandler(c *gin.Context) {
 		return
 	}
 
-	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Email, data.Telephone, data.MotDePasse, 2)
+	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Username, data.MotDePasse, 2)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
