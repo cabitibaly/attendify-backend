@@ -19,6 +19,8 @@ func (s *PushTokenService) EnregistrerOuModifierPushToken(pushTokenDTO dto.PushT
 	return s.repo.CreateOrUpdate(&models.PushToken{
 		PushToken:     pushTokenDTO.PushToken,
 		DeviceType:    pushTokenDTO.DeviceType,
+		DeviceName:    pushTokenDTO.DeviceName,
+		Platform:      pushTokenDTO.Platform,
 		UtilisateurID: pushTokenDTO.UtilisateurID,
 	})
 }
@@ -35,4 +37,8 @@ func (s *PushTokenService) EnvoyerNotificationPushAUnUtilisateur(utilisateurID u
 		}
 	}
 	return nil
+}
+
+func (s *PushTokenService) SupprimerUnPushToken(pushToken string) error {
+	return s.repo.Delete(pushToken)
 }

@@ -23,6 +23,8 @@ func (r *PushTokenRepository) CreateOrUpdate(pushToken *models.PushToken) error 
 	if err == nil {
 		pushTokenExiste.PushToken = pushToken.PushToken
 		pushTokenExiste.DeviceType = pushToken.DeviceType
+		pushTokenExiste.DeviceName = pushToken.DeviceName
+		pushTokenExiste.Platform = pushToken.Platform
 		pushTokenExiste.EstActive = true
 		pushTokenExiste.DateModificationPushToken = time.Now()
 
@@ -41,4 +43,8 @@ func (r *PushTokenRepository) FindActivePushTokenByUtilisateurID(utilisateurID u
 
 func (r *PushTokenRepository) DesactivePushToken(token string) error {
 	return r.db.Model(&models.PushToken{}).Where("push_token = ?", token).Update("est_active", false).Error
+}
+
+func (r *PushTokenRepository) Delete(token string) error {
+	return r.db.Where("push_token = ?", token).Delete(&models.PushToken{}).Error
 }

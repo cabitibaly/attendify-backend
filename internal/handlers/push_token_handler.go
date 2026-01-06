@@ -51,3 +51,22 @@ func (h *PushTokenHandler) EnregistrerOuModifierPushTokenHandler(c *gin.Context)
 		"status":  http.StatusOK,
 	})
 }
+
+func (h *PushTokenHandler) SupprimerPushTokenHandler(c *gin.Context) {
+	token := c.Param("token")
+
+	err := h.service.SupprimerUnPushToken(token)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "Une erreur est survenue",
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Le token a bien été supprimé",
+		"status":  http.StatusOK,
+	})
+}

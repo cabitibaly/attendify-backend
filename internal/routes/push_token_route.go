@@ -16,5 +16,6 @@ func PushTokenRoute(
 	pushToken.Use(middlewares.AuthMiddleware(authService))
 	{
 		pushToken.POST("", pushTokenHandler.EnregistrerOuModifierPushTokenHandler)
+		pushToken.DELETE("/:token", pushTokenHandler.SupprimerPushTokenHandler)
 	}
 }
