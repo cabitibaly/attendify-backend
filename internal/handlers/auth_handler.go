@@ -111,7 +111,7 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 		Token string `json:"token"`
 	}
 
-	if err := c.ShouldBindJSON((&data)); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusBadRequest,
@@ -159,9 +159,9 @@ func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
 	cacheKey := "access_token:" + jti.(string)
 
 	var data struct {
-		Token string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
-	if err := c.ShouldBindJSON((&data)); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		log.Println("une erreur est survenue:", err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":  "Vous n'êtes pas connecté(e)s",
@@ -170,7 +170,7 @@ func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
 		return
 	}
 
-	err := h.service.Deconnexion(data.Token)
+	err := h.service.Deconnexion(data.RefreshToken)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
