@@ -1,15 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cabitibaly/configs"
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
 	"github.com/gin-gonic/gin"
@@ -147,12 +144,6 @@ func (h *PointageHandler) TousLesPointagesHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	cacheKey := "pointages:All:" + strconv.Itoa(utilisateurID) + ":" + strconv.FormatBool(aujoudhui) + ":" + date.Format("2006-01-02") + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	pointages, hasNextPage, total, err := h.service.TousLesPointages(uint(utilisateurID), aujoudhui, date, page, limit)
 
 	if err != nil {
@@ -164,18 +155,6 @@ func (h *PointageHandler) TousLesPointagesHandler(c *gin.Context) {
 	}
 
 	pointagesFormated := dto.ToPointageResponseDTOList(pointages)
-
-	cacheValue := dto.PointagesResponse{
-		Pointages: pointagesFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"pointages":   pointagesFormated,
@@ -208,12 +187,6 @@ func (h *PointageHandler) TousLesPointagesEmployeHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	cacheKey := "pointages:AllEmploye:" + fmt.Sprintf("%d", utilisateurID) + ":" + strconv.FormatBool(aujoudhui) + ":" + date.Format("2006-01-02") + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	pointages, hasNextPage, total, errService := h.service.TousLesPointages(utilisateurID.(uint), aujoudhui, date, page, limit)
 
 	if errService != nil {
@@ -225,18 +198,6 @@ func (h *PointageHandler) TousLesPointagesEmployeHandler(c *gin.Context) {
 	}
 
 	pointagesFormated := dto.ToPointageResponseDTOList(pointages)
-
-	cacheValue := dto.PointagesResponse{
-		Pointages: pointagesFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"pointages":   pointagesFormated,

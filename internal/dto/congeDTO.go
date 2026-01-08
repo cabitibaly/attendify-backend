@@ -20,6 +20,7 @@ type CongeUtilisateurDTO struct {
 	Nom    string `json:"nom"`
 	Prenom string `json:"prenom"`
 	Image  string `json:"image"`
+	Poste  string `json:"poste"`
 }
 
 type CongeResponseAdminDTO struct {
@@ -68,6 +69,7 @@ func ToCongeResponseAdminDTO(conge *models.Conge) CongeResponseAdminDTO {
 			Nom:    conge.Utilisateur.Nom,
 			Prenom: conge.Utilisateur.Prenom,
 			Image:  conge.Utilisateur.Image,
+			Poste:  conge.Utilisateur.Poste,
 		}
 	}
 
