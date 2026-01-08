@@ -29,35 +29,40 @@ func NewAuthservice(
 	}
 }
 
-func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.Utilisateur, error) {
+func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (string, error) {
 	if utilisateurDTO.Nom == "" ||
 		utilisateurDTO.Email == "" ||
 		utilisateurDTO.Poste == "" ||
-		utilisateurDTO.Telephone == "" ||
-		utilisateurDTO.MotDePasse == "" {
-		return nil, fmt.Errorf("nom, email, poste, telephone et mot de passe sont obligatoires")
+		utilisateurDTO.Telephone == "" {
+		return "", fmt.Errorf("nom, email, poste, telephone et mot de passe sont obligatoires")
 	}
 
 	if utilisateurDTO.SiteID == 0 {
-		return nil, fmt.Errorf("vous devez sélectionner un site")
+		return "", fmt.Errorf("vous devez sélectionner un site")
 	}
 
 	if _, err := s.siteRepo.FindByID(uint(utilisateurDTO.SiteID)); err != nil {
-		return nil, fmt.Errorf("le site sélectionné n'existe pas")
+		return "", fmt.Errorf("le site sélectionné n'existe pas")
 	}
 
 	if _, err := s.utilisateurRepo.FindByEmail(utilisateurDTO.Email); err == nil {
-		return nil, fmt.Errorf("cet email est déjà utilisé")
+		return "", fmt.Errorf("cet email est déjà utilisé")
 	}
 
 	if _, err := s.utilisateurRepo.FindByTelephone(utilisateurDTO.Telephone); err == nil {
-		return nil, fmt.Errorf("cet numero de telephone est déjà utilisé")
+		return "", fmt.Errorf("cet numero de telephone est déjà utilisé")
 	}
 
-	hashedPassword, err := utils.HashPassword(utilisateurDTO.MotDePasse)
+	motDePasse, err := utils.GeneratePassword(12)
 
 	if err != nil {
-		return nil, fmt.Errorf("une erreur est survenue")
+		return "", fmt.Errorf("une erreur est survenue, veuillez réessayer")
+	}
+
+	hashedPassword, err := utils.HashPassword(motDePasse)
+
+	if err != nil {
+		return "", fmt.Errorf("une erreur est survenue")
 	}
 
 	utilisateur := models.Utilisateur{
@@ -75,10 +80,10 @@ func (s *AuthService) CreerUnCompte(utilisateurDTO dto.UtilisateurDTO) (*models.
 	err = s.utilisateurRepo.Create(&utilisateur)
 
 	if err != nil {
-		return nil, fmt.Errorf("une erreur est survenue lors de la création de l'utilisateur")
+		return "", fmt.Errorf("une erreur est survenue lors de la création de l'utilisateur")
 	}
 
-	return &utilisateur, nil
+	return motDePasse, nil
 }
 
 func (s *AuthService) Connexion(username, motDePasse string, expectedRoleID int) (*models.Utilisateur, string, string, error) {

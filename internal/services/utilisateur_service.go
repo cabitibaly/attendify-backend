@@ -139,5 +139,9 @@ func (s *UtilisateurService) ModifierSonMotDePasse(utilisateurID uint, ancien, n
 }
 
 func (s *UtilisateurService) SupprimerUnCompte(utilisateurID uint) error {
+	if _, err := s.utilisateurRepo.FindByID(utilisateurID); err != nil {
+		return fmt.Errorf("cet utilisateur n'existe pas")
+	}
+
 	return s.utilisateurRepo.Delete(utilisateurID)
 }

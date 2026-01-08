@@ -32,7 +32,7 @@ func (h *AuthHandler) CreerUnCompteHandler(c *gin.Context) {
 		return
 	}
 
-	_, err := h.service.CreerUnCompte(data)
+	motDePasse, err := h.service.CreerUnCompte(data)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -43,8 +43,9 @@ func (h *AuthHandler) CreerUnCompteHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Compte créé avec succès",
-		"status":  http.StatusCreated,
+		"message":    "Compte créé avec succès",
+		"motDePasse": motDePasse,
+		"status":     http.StatusCreated,
 	})
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cabitibaly/configs"
@@ -77,12 +78,6 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 		limit = 20
 	}
 
-	cacheKey := "utilisateurs:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(recherche, page, limit)
 
 	if err != nil {
@@ -94,18 +89,6 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 	}
 
 	utilisateursFormated := dto.ToUtilisateurResponseDTOList(utilsateurs)
-
-	cacheValue := dto.UtilisateursResponse{
-		Utilisateurs: utilisateursFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"utilisateurs": utilisateursFormated,
@@ -264,6 +247,14 @@ func (h *UtilisateurHandler) SupprimerUnCompteHandler(c *gin.Context) {
 	err := h.service.SupprimerUnCompte(uint(utilisateurID))
 
 	if err != nil {
+		if strings.Contains(err.Error(), "cet utilisateur n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,

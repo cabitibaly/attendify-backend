@@ -136,7 +136,7 @@ func (h *PointageHandler) TousLesPointagesHandler(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	aujoudhui, _ := strconv.ParseBool(c.Query("aujourdhui"))
-	date, _ := time.Parse("2006-01-02T15:04:05.00Z", c.Query("date"))
+	date, _ := time.Parse("2006-01-02T15:04:05.000Z", c.Query("date"))
 	utilisateurID, _ := strconv.Atoi(c.Query("utilisateurID"))
 
 	if page < 1 {
