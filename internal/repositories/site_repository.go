@@ -32,7 +32,7 @@ func (r *SiteRepository) FindByID(id uint) (*models.Site, error) {
 func (r *SiteRepository) FindByNomSite(nomSite string) (*models.Site, error) {
 	var site models.Site
 
-	err := r.db.Where("site = ?", nomSite).First(&site).Error
+	err := r.db.Where("nom_site = ?", nomSite).First(&site).Error
 
 	if err != nil {
 		return nil, err
