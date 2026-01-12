@@ -26,6 +26,7 @@ func PointageRoutes(
 	{
 		admin.GET("/tous-les-pointages", pointageHandler.TousLesPointagesHandler)
 		admin.GET("/stats", pointageHandler.StatsHandler)
+		admin.GET("/export", pointageHandler.ExportHandler)
 		admin.DELETE("/supprimer/:id", pointageHandler.SupprimerUnPointageHandler)
 	}
 }

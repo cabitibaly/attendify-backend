@@ -44,6 +44,36 @@ func (r *PointageRepository) FindByUtilisateurID(utilisateurID uint) (*models.Po
 	return &pointage, nil
 }
 
+func (r *PointageRepository) FindByDateRange(dateDebut, dateFin time.Time) ([]models.Pointage, error) {
+	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
+	if errLoc != nil {
+		return nil, fmt.Errorf("erreur de timezone: %w", errLoc)
+	}
+
+	dateDebut = time.Date(
+		dateDebut.Year(),
+		dateDebut.Month(),
+		dateDebut.Day(),
+		0, 0, 0, 0,
+		location,
+	)
+
+	dateFin = time.Date(
+		dateFin.Year(),
+		dateFin.Month(),
+		dateFin.Day(),
+		23, 59, 59, 0,
+		location,
+	)
+
+	var pointages []models.Pointage
+	err := r.db.Preload("Utilisateur").
+		Where("arrive >= ? AND arrive <= ?", dateDebut, dateFin).
+		Order("arrive DESC").Find(&pointages).Error
+
+	return pointages, err
+}
+
 func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {
 	var pointages []models.Pointage
 	var total int64

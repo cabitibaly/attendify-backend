@@ -9,6 +9,7 @@ import (
 
 	"github.com/cabitibaly/internal/dto"
 	"github.com/cabitibaly/internal/services"
+	"github.com/cabitibaly/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -245,4 +246,63 @@ func (h *PointageHandler) StatsHandler(c *gin.Context) {
 		"tauxPresence": float64(totalPresent) / float64(totalEmp) * 100,
 		"status":       http.StatusOK,
 	})
+}
+
+func (h *PointageHandler) ExportHandler(c *gin.Context) {
+	debut := c.Query("debut")
+	fin := c.Query("fin")
+
+	if debut == "" || fin == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Les dates de début et de fin sont obligatoires",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	debutParsed, err := time.Parse("2006-01-02T15:04:05.000Z", debut)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Format de date début invalide (attendu: JJ/MM/AAAA)",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	finParsed, err := time.Parse("2006-01-02T15:04:05.000Z", fin)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Format de date fin invalide (attendu: JJ/MM/AAAA)",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	if finParsed.Before(debutParsed) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "La date de fin ne peut pas être antérieure à la date de début",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	filBytes, err := h.service.Export(debutParsed, finParsed)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "Erreur lors de la génération du fichier: " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	filename := utils.GenerateFileName(debutParsed, finParsed)
+	c.Header("Content-Description", "File Transfert")
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Expires", "0")
+	c.Header("Cache-Control", "must-revalidate")
+	c.Header("Pragma", "public")
+
+	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filBytes)
 }
