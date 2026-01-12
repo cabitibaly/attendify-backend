@@ -56,6 +56,14 @@ func (h *CongeHandler) FaireUneDemandeHandler(c *gin.Context) {
 			return
 		}
 
+		if strings.Contains(errService.Error(), "n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  errService.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  errService.Error(),
 			"status": http.StatusInternalServerError,

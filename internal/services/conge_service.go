@@ -34,6 +34,11 @@ func NewCongeService(
 }
 
 func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint) error {
+	utilisateur, err := s.utilisateurRepo.FindByID(utilisateurID)
+	if err != nil {
+		return fmt.Errorf("cet utilisateur n'existe pas")
+	}
+
 	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
 
 	if errLoc != nil {
@@ -113,7 +118,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 
 	_ = s.notifRepo.Create(&models.Notification{
 		Titre:            "Nouvelle demande",
-		Message:          "Une nouvelle demande de congé a été créée",
+		Message:          fmt.Sprintf("Une nouvelle demande de congé a été créée par %s %s", utilisateur.Nom, utilisateur.Prenom),
 		TypeNotification: "SUCCESS",
 		UtilisateurID:    1,
 	})
