@@ -22,6 +22,35 @@ func NewPointageHandler(service *services.PointageService) *PointageHandler {
 	return &PointageHandler{service: service}
 }
 
+func (h *PointageHandler) EstSurSiteHandler(c *gin.Context) {
+	empLatitude, _ := strconv.ParseFloat(c.Query("latitude"), 64)
+	empLongitute, _ := strconv.ParseFloat(c.Query("longitude"), 64)
+	utilisateurID, _ := c.Get("utilisateurID")
+
+	estSurSite, err := h.service.EstSurSite(utilisateurID.(uint), empLatitude, empLongitute)
+
+	if !estSurSite && err != nil {
+		if strings.Contains(err.Error(), "n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"est_sur_site": estSurSite,
+		"status":       http.StatusOK,
+	})
+}
+
 func (h *PointageHandler) PointageArriveeHandler(c *gin.Context) {
 	empLatitude, _ := strconv.ParseFloat(c.Query("latitude"), 64)
 	empLongitute, _ := strconv.ParseFloat(c.Query("longitude"), 64)

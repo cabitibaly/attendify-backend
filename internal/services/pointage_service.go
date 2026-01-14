@@ -30,6 +30,26 @@ func NewPointageService(
 	}
 }
 
+func (s *PointageService) EstSurSite(utilisateurID uint, empLatitude, empLongitude float64) (bool, error) {
+	employe, errEmp := s.utilisateurRepo.FindByID(utilisateurID)
+
+	if errEmp != nil {
+		return false, fmt.Errorf("cet utilisateur n'existe pas")
+	}
+
+	if !utils.EstDansLaZone(
+		empLatitude,
+		empLongitude,
+		employe.Site.Latitude,
+		employe.Site.Longitude,
+		employe.Site.Rayon,
+	) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLongitude float64) error {
 	employe, errEmp := s.utilisateurRepo.FindByID(utilisateurID)
 
