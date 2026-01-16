@@ -103,6 +103,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		DateRetour:        finJour,
 		Raison:            congeDTO.Raison,
 		TypeConge:         congeDTO.TypeConge,
+		PieceJointeURL:    congeDTO.PieceJointeURL,
 		PieceJointe:       congeDTO.PieceJointe,
 		NombreJours:       nombreDeJours,
 		StatutCongeID:     1,

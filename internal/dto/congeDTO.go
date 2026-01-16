@@ -7,13 +7,14 @@ import (
 )
 
 type CongeDTO struct {
-	Id          int       `json:"id"`
-	DateDepart  time.Time `json:"dateDepart"`
-	DateRetour  time.Time `json:"dateRetour"`
-	Raison      string    `json:"raison"`
-	TypeConge   string    `json:"typeConge"`
-	PieceJointe string    `json:"pieceJointe"`
-	StatutConge string    `json:"statutConge"`
+	Id             int       `json:"id"`
+	DateDepart     time.Time `json:"dateDepart"`
+	DateRetour     time.Time `json:"dateRetour"`
+	Raison         string    `json:"raison"`
+	TypeConge      string    `json:"typeConge"`
+	PieceJointe    string    `json:"pieceJointe"`
+	PieceJointeURL string    `json:"pieceJointeURL"`
+	StatutConge    string    `json:"statutConge"`
 }
 
 type CongeUtilisateurDTO struct {
@@ -51,12 +52,13 @@ type CongeResponseAdmin struct {
 func ToCongeResponseAdminDTO(conge *models.Conge) CongeResponseAdminDTO {
 	dto := CongeResponseAdminDTO{
 		CongeDTO: CongeDTO{
-			Id:          conge.IDConge,
-			DateDepart:  conge.DateDepart,
-			DateRetour:  conge.DateRetour,
-			Raison:      conge.Raison,
-			TypeConge:   conge.TypeConge,
-			PieceJointe: conge.PieceJointe,
+			Id:             conge.IDConge,
+			DateDepart:     conge.DateDepart,
+			DateRetour:     conge.DateRetour,
+			Raison:         conge.Raison,
+			TypeConge:      conge.TypeConge,
+			PieceJointe:    conge.PieceJointe,
+			PieceJointeURL: conge.PieceJointeURL,
 		},
 	}
 
@@ -78,12 +80,13 @@ func ToCongeResponseAdminDTO(conge *models.Conge) CongeResponseAdminDTO {
 
 func ToCongeResponseEmpDTO(conge *models.Conge) CongeDTO {
 	dto := CongeDTO{
-		Id:          conge.IDConge,
-		DateDepart:  conge.DateDepart,
-		DateRetour:  conge.DateRetour,
-		Raison:      conge.Raison,
-		TypeConge:   conge.TypeConge,
-		PieceJointe: conge.PieceJointe,
+		Id:             conge.IDConge,
+		DateDepart:     conge.DateDepart,
+		DateRetour:     conge.DateRetour,
+		Raison:         conge.Raison,
+		TypeConge:      conge.TypeConge,
+		PieceJointe:    conge.PieceJointe,
+		PieceJointeURL: conge.PieceJointeURL,
 	}
 
 	if conge.StatutConge != nil {

@@ -9,6 +9,7 @@ type Conge struct {
 	Raison                string    `gorm:"type:text" json:"raison"`
 	TypeConge             string    `gorm:"type:varchar(50)" json:"typeConge"`
 	PieceJointe           string    `gorm:"type:varchar(255)" json:"pieceJointe"`
+	PieceJointeURL        string    `gorm:"type:varchar(255); default:''" json:"pieceJointeURL"`
 	NombreJours           int       `gorm:"type:int" json:"nombreJours"`
 	UtilisateurID         int       `gorm:"type:int" json:"utilisateurID"`
 	StatutCongeID         int       `gorm:"type:int" json:"statutCongeID"`

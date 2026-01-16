@@ -71,9 +71,9 @@ func (h *CongeHandler) FaireUneDemandeHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"message": "congé créé avec succès",
-		"status":  http.StatusOK,
+		"status":  http.StatusCreated,
 	})
 }
 
