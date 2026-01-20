@@ -127,7 +127,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 		1,
 		"Nouvelle demande",
-		"Vous avez une nouvelle demande de congé",
+		fmt.Sprintf("Une nouvelle demande de congé a été créée par %s %s", utilisateur.Nom, utilisateur.Prenom),
 	)
 
 	return nil
@@ -199,14 +199,14 @@ func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
 	if statutID == 2 {
 		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 			uint(congeExistant.UtilisateurID),
-			"Validation du congé",
-			"Votre demande a été approuvée",
+			"Validation de congé",
+			fmt.Sprintf("Votre demande de congé du %s a été approuvée", congeExistant.DateCreationConge.Format("02/01/2006")),
 		)
 	} else {
 		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 			uint(congeExistant.UtilisateurID),
-			"Validation du congé",
-			"Votre demande a été rejetée",
+			"Validation de congé",
+			fmt.Sprintf("Votre demande de congé du %s a été rejetée", congeExistant.DateCreationConge.Format("02/01/2006")),
 		)
 	}
 
