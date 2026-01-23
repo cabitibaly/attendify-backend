@@ -109,13 +109,13 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 		uint(utilisateurID),
 		"Pointage d'arrivée",
-		"Bonjour, nous sommes ravie de vous revoir.\n Bonne journée !",
+		"Bonjour, nous sommes ravie de vous revoir.\nBonne journée !",
 	)
 
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 		1,
 		"Pointage d'arrivée",
-		fmt.Sprintf("%s %s est arrivé(e) a %s.", employe.Nom, employe.Prenom, maintenant.Format("08:00:00")),
+		fmt.Sprintf("%s %s est arrivé(e) a %s.", employe.Nom, employe.Prenom, maintenant.Format("15:04")),
 	)
 
 	return nil
@@ -190,7 +190,7 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 		1,
 		"Pointage de depart",
-		fmt.Sprintf("%s %s est parti(e) a %s.", employe.Nom, employe.Prenom, maintenant.Format("16:00")),
+		fmt.Sprintf("%s %s est parti(e) a %s.", employe.Nom, employe.Prenom, maintenant.Format("15:04")),
 	)
 
 	return nil
