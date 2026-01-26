@@ -67,18 +67,12 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 		return fmt.Errorf("vous n'êtes pas sur site")
 	}
 
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
-
 	heureDebutGeorep := employe.Site.HeureDebut.Hour()
 	minuteDebutGeorep := employe.Site.HeureDebut.Minute()
 	secondeDebutGeorep := employe.Site.HeureDebut.Second()
 
-	maintenant := time.Now().In(location)
-	heureDebut := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureDebutGeorep, minuteDebutGeorep, secondeDebutGeorep, 0, location)
+	maintenant := time.Now().UTC()
+	heureDebut := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureDebutGeorep, minuteDebutGeorep, secondeDebutGeorep, 0, time.UTC)
 
 	dernierPointage, err := s.pointageRepo.FindByUtilisateurID(uint(employe.IDUtilisateur))
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -86,7 +80,7 @@ func (s *PointageService) PointageArrivee(utilisateurID uint, empLatitude, empLo
 	}
 
 	if dernierPointage != nil {
-		dateArriveDernierPointage := dernierPointage.Arrive.In(location)
+		dateArriveDernierPointage := dernierPointage.Arrive.UTC()
 		if dateArriveDernierPointage.Year() == maintenant.Year() &&
 			dateArriveDernierPointage.Month() == maintenant.Month() &&
 			dateArriveDernierPointage.Day() == maintenant.Day() {
@@ -138,18 +132,12 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 		return fmt.Errorf("vous n'êtes pas sur site")
 	}
 
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
-
 	heureFinGeorep := employe.Site.HeureFin.Hour()
 	minuteFinGeorep := employe.Site.HeureFin.Minute()
 	secondeFinGeorep := employe.Site.HeureFin.Second()
 
-	maintenant := time.Now().In(location)
-	heureFin := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureFinGeorep, minuteFinGeorep, secondeFinGeorep, 0, location)
+	maintenant := time.Now().UTC()
+	heureFin := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), heureFinGeorep, minuteFinGeorep, secondeFinGeorep, 0, time.UTC)
 
 	dernierPointage, err := s.pointageRepo.FindByUtilisateurID(utilisateurID)
 	if err != nil {
@@ -160,7 +148,7 @@ func (s *PointageService) PointageDepart(utilisateurID uint, empLatitude, empLon
 		return err
 	}
 
-	dateArrivee := dernierPointage.Arrive.In(location)
+	dateArrivee := dernierPointage.Arrive.UTC()
 	if dateArrivee.Year() != maintenant.Year() ||
 		dateArrivee.Month() != maintenant.Month() ||
 		dateArrivee.Day() != maintenant.Day() {

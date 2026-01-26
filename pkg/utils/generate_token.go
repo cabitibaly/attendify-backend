@@ -29,9 +29,7 @@ func InitializeJWTSecret(secret string, refreshSecret string) {
 }
 
 func GenerateAccessToken(utilisateurID, roleID uint, email, telephone string) (string, error) {
-	location, _ := time.LoadLocation("Africa/Ouagadougou")
-
-	expireAt := time.Now().Add(24 * time.Hour).In(location)
+	expireAt := time.Now().UTC().Add(24 * time.Hour)
 
 	jti := uuid.New().String()
 
@@ -75,9 +73,7 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 }
 
 func GenerateRefreshToken(utilisateurID, roleID uint, email, telephone string) (string, *time.Time, error) {
-	location, _ := time.LoadLocation("Africa/Ouagadougou")
-
-	expireAt := time.Now().Add(30 * 24 * time.Hour).In(location)
+	expireAt := time.Now().UTC().Add(30 * 24 * time.Hour)
 
 	claims := JWTClaims{
 		UtilisateurID: utilisateurID,
@@ -86,7 +82,7 @@ func GenerateRefreshToken(utilisateurID, roleID uint, email, telephone string) (
 		RoleID:        roleID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expireAt),
-			IssuedAt:  jwt.NewNumericDate(time.Now().In(location)),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		},
 	}
 

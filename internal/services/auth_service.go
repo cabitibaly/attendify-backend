@@ -158,8 +158,7 @@ func (s *AuthService) NouveauRefreshToken(refreshToken string) (string, string, 
 		return "", "", err
 	}
 
-	location, _ := time.LoadLocation("Africa/Ouagadougou")
-	maintenat := time.Now().In(location)
+	maintenat := time.Now().UTC()
 	if maintenat.After(ancienRT.ExpireAt) || ancienRT.RevokedAt != nil {
 		return "", "", fmt.Errorf("le refresh token a expiré ou a été révoqué")
 	}

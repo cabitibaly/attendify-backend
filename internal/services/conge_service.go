@@ -39,12 +39,6 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return fmt.Errorf("cet utilisateur n'existe pas")
 	}
 
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
-
 	if congeDTO.Raison == "" {
 		return fmt.Errorf("qu'elle est la raison de votre congé")
 	}
@@ -53,17 +47,17 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return fmt.Errorf("quel type de congé vous avez")
 	}
 
-	if congeDTO.DateDepart.In(location).IsZero() || congeDTO.DateRetour.In(location).IsZero() || congeDTO.Raison == "" {
+	if congeDTO.DateDepart.UTC().IsZero() || congeDTO.DateRetour.UTC().IsZero() || congeDTO.Raison == "" {
 		return fmt.Errorf("date de départ, date de retour et raison sont obligatoires")
 	}
 
-	dateDebut := congeDTO.DateDepart.In(location)
-	dateFin := congeDTO.DateRetour.In(location)
-	maintenant := time.Now().In(location)
+	dateDebut := congeDTO.DateDepart.UTC()
+	dateFin := congeDTO.DateRetour.UTC()
+	maintenant := time.Now().UTC()
 
-	debutJour := time.Date(dateDebut.Year(), dateDebut.Month(), dateDebut.Day(), 0, 0, 0, 0, location)
-	finJour := time.Date(dateFin.Year(), dateFin.Month(), dateFin.Day(), 0, 0, 0, 0, location)
-	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, location)
+	debutJour := time.Date(dateDebut.Year(), dateDebut.Month(), dateDebut.Day(), 0, 0, 0, 0, time.UTC)
+	finJour := time.Date(dateFin.Year(), dateFin.Month(), dateFin.Day(), 0, 0, 0, 0, time.UTC)
+	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, time.UTC)
 
 	if debutJour.Equal(aujourdhui) {
 		return fmt.Errorf("la date de départ ne peut pas être aujourd'hui")
