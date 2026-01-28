@@ -141,6 +141,37 @@ func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
 	})
 }
 
+func (h *UtilisateurHandler) ChangerDeSiteHandler(c *gin.Context) {
+	utilisateurID, _ := strconv.Atoi(c.Param("id"))
+	siteID, _ := strconv.Atoi(c.Param("siteID"))
+
+	if utilisateurID < 1 || siteID < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Erreur de paramètre",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	err := h.service.ChangerDeSite(uint(utilisateurID), uint(siteID))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	cacheKey := "utilisateur:" + fmt.Sprintf("%d", utilisateurID)
+	_ = configs.DeleteCache(cacheKey)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Changement de site effectué avec succès",
+		"status":  http.StatusOK,
+	})
+}
+
 func (h *UtilisateurHandler) ModifierSonCompteHandler(c *gin.Context) {
 	var data map[string]any
 

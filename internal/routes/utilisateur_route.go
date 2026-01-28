@@ -25,6 +25,7 @@ func UtilisateurRoutes(
 	{
 		admin.GET("/tous-les-employes", utilisateurHandler.TousLesEmployesHandler)
 		admin.GET("/tous-les-employes/:id", utilisateurHandler.LireUnEmployeHandler)
+		admin.PATCH("/changer-de-site/:id/:siteID", utilisateurHandler.ChangerDeSiteHandler)
 		admin.DELETE("/supprimer-un-compte/:id", utilisateurHandler.SupprimerUnCompteHandler)
 	}
 }
