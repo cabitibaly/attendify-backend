@@ -209,6 +209,11 @@ go test ./...
 
 ---
 
-## 📄 Licence
+## Auteur
+ 
+**cabitibaly** — [GitHub](https://github.com/cabitibaly)
 
-Ce projet est privé — tous droits réservés.
+## Liens vers les apps mobiles
+
+[Attendify-employe](https://github.com/cabitibaly/attendify-employee)
+[Attendify-admin](https://github.com/cabitibaly/attendify-admin)
