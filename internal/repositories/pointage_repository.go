@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cabitibaly/internal/models"
@@ -44,17 +43,37 @@ func (r *PointageRepository) FindByUtilisateurID(utilisateurID uint) (*models.Po
 	return &pointage, nil
 }
 
+func (r *PointageRepository) FindByDateRange(dateDebut, dateFin time.Time) ([]models.Pointage, error) {
+
+	dateDebut = time.Date(
+		dateDebut.Year(),
+		dateDebut.Month(),
+		dateDebut.Day(),
+		0, 0, 0, 0,
+		time.UTC,
+	)
+
+	dateFin = time.Date(
+		dateFin.Year(),
+		dateFin.Month(),
+		dateFin.Day(),
+		23, 59, 59, 0,
+		time.UTC,
+	)
+
+	var pointages []models.Pointage
+	err := r.db.Preload("Utilisateur").
+		Where("arrive >= ? AND arrive <= ?", dateDebut, dateFin).
+		Order("arrive DESC").Find(&pointages).Error
+
+	return pointages, err
+}
+
 func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date time.Time, page, limit int) ([]models.Pointage, bool, int64, error) {
 	var pointages []models.Pointage
 	var total int64
 
 	db := r.db.Model(&models.Pointage{}).Preload("Utilisateur").Order("id_pointage DESC")
-
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return nil, false, 0, fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
 
 	if !date.IsZero() {
 		debutJournee := time.Date(
@@ -62,7 +81,7 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 			date.Month(),
 			date.Day(),
 			0, 0, 0, 0,
-			location,
+			time.UTC,
 		)
 
 		finJournee := debutJournee.Add(24 * time.Hour)
@@ -80,7 +99,7 @@ func (r *PointageRepository) FindAll(utilisateurID uint, aujoudhui bool, date ti
 			0,
 			0,
 			0,
-			location,
+			time.UTC,
 		)
 
 		finJournee := debutJournee.Add(24 * time.Hour)
@@ -112,19 +131,13 @@ func (r *PointageRepository) Delete(id uint) error {
 }
 
 func (r *PointageRepository) GetTotalPresentAndRetard() (int64, int64, error) {
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return 0, 0, fmt.Errorf("erreur de timezone: %w", errLoc)
-	}
-
-	aujoudhui := time.Now().In(location)
+	aujoudhui := time.Now().UTC()
 	debutJournee := time.Date(
 		aujoudhui.Year(),
 		aujoudhui.Month(),
 		aujoudhui.Day(),
 		0, 0, 0, 0,
-		location,
+		time.UTC,
 	)
 
 	finJournee := debutJournee.Add(24 * time.Hour)

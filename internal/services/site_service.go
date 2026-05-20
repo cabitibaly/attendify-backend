@@ -53,5 +53,9 @@ func (s *SiteService) ModifierUnSite(id uint, data map[string]any) error {
 }
 
 func (s *SiteService) SupprimerUnSite(id uint) error {
+	if _, err := s.siteRepo.FindByID(id); err != nil {
+		return fmt.Errorf("ce site n'existe pas")
+	}
+
 	return s.siteRepo.Delete(id)
 }

@@ -34,10 +34,9 @@ func NewCongeService(
 }
 
 func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint) error {
-	location, errLoc := time.LoadLocation("Africa/Ouagadougou")
-
-	if errLoc != nil {
-		return fmt.Errorf("erreur de timezone: %w", errLoc)
+	utilisateur, err := s.utilisateurRepo.FindByID(utilisateurID)
+	if err != nil {
+		return fmt.Errorf("cet utilisateur n'existe pas")
 	}
 
 	if congeDTO.Raison == "" {
@@ -48,17 +47,17 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		return fmt.Errorf("quel type de congé vous avez")
 	}
 
-	if congeDTO.DateDepart.In(location).IsZero() || congeDTO.DateRetour.In(location).IsZero() || congeDTO.Raison == "" {
+	if congeDTO.DateDepart.UTC().IsZero() || congeDTO.DateRetour.UTC().IsZero() || congeDTO.Raison == "" {
 		return fmt.Errorf("date de départ, date de retour et raison sont obligatoires")
 	}
 
-	dateDebut := congeDTO.DateDepart.In(location)
-	dateFin := congeDTO.DateRetour.In(location)
-	maintenant := time.Now().In(location)
+	dateDebut := congeDTO.DateDepart.UTC()
+	dateFin := congeDTO.DateRetour.UTC()
+	maintenant := time.Now().UTC()
 
-	debutJour := time.Date(dateDebut.Year(), dateDebut.Month(), dateDebut.Day(), 0, 0, 0, 0, location)
-	finJour := time.Date(dateFin.Year(), dateFin.Month(), dateFin.Day(), 0, 0, 0, 0, location)
-	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, location)
+	debutJour := time.Date(dateDebut.Year(), dateDebut.Month(), dateDebut.Day(), 0, 0, 0, 0, time.UTC)
+	finJour := time.Date(dateFin.Year(), dateFin.Month(), dateFin.Day(), 0, 0, 0, 0, time.UTC)
+	aujourdhui := time.Date(maintenant.Year(), maintenant.Month(), maintenant.Day(), 0, 0, 0, 0, time.UTC)
 
 	if debutJour.Equal(aujourdhui) {
 		return fmt.Errorf("la date de départ ne peut pas être aujourd'hui")
@@ -98,6 +97,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 		DateRetour:        finJour,
 		Raison:            congeDTO.Raison,
 		TypeConge:         congeDTO.TypeConge,
+		PieceJointeURL:    congeDTO.PieceJointeURL,
 		PieceJointe:       congeDTO.PieceJointe,
 		NombreJours:       nombreDeJours,
 		StatutCongeID:     1,
@@ -113,7 +113,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 
 	_ = s.notifRepo.Create(&models.Notification{
 		Titre:            "Nouvelle demande",
-		Message:          "Une nouvelle demande de congé a été créée",
+		Message:          fmt.Sprintf("Une nouvelle demande de congé a été créée par %s %s", utilisateur.Nom, utilisateur.Prenom),
 		TypeNotification: "SUCCESS",
 		UtilisateurID:    1,
 	})
@@ -121,7 +121,7 @@ func (s *CongeService) FaireUneDemande(congeDTO dto.CongeDTO, utilisateurID uint
 	_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 		1,
 		"Nouvelle demande",
-		"Vous avez une nouvelle demande de congé",
+		fmt.Sprintf("Une nouvelle demande de congé a été créée par %s %s", utilisateur.Nom, utilisateur.Prenom),
 	)
 
 	return nil
@@ -193,14 +193,14 @@ func (s *CongeService) ModifierStatutConge(id uint, statutID uint) error {
 	if statutID == 2 {
 		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 			uint(congeExistant.UtilisateurID),
-			"Validation du congé",
-			"Votre demande a été approuvée",
+			"Validation de congé",
+			fmt.Sprintf("Votre demande de congé du %s a été approuvée", congeExistant.DateCreationConge.Format("02/01/2006")),
 		)
 	} else {
 		_ = s.notifpushService.EnvoyerNotificationPushAUnUtilisateur(
 			uint(congeExistant.UtilisateurID),
-			"Validation du congé",
-			"Votre demande a été rejetée",
+			"Validation de congé",
+			fmt.Sprintf("Votre demande de congé du %s a été rejetée", congeExistant.DateCreationConge.Format("02/01/2006")),
 		)
 	}
 

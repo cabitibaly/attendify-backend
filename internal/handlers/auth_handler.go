@@ -32,7 +32,7 @@ func (h *AuthHandler) CreerUnCompteHandler(c *gin.Context) {
 		return
 	}
 
-	_, err := h.service.CreerUnCompte(data)
+	motDePasse, err := h.service.CreerUnCompte(data)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -43,8 +43,9 @@ func (h *AuthHandler) CreerUnCompteHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Compte créé avec succès",
-		"status":  http.StatusCreated,
+		"message":    "Compte créé avec succès",
+		"motDePasse": motDePasse,
+		"status":     http.StatusCreated,
 	})
 }
 
@@ -59,7 +60,7 @@ func (h *AuthHandler) ConnexionAdminHandler(c *gin.Context) {
 		return
 	}
 
-	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Email, data.Telephone, data.MotDePasse, 1)
+	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Username, data.MotDePasse, 1)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -88,7 +89,7 @@ func (h *AuthHandler) ConnexionEmployeHandler(c *gin.Context) {
 		return
 	}
 
-	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Email, data.Telephone, data.MotDePasse, 2)
+	utilisateur, refreshToken, accessToken, err := h.service.Connexion(data.Username, data.MotDePasse, 2)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -111,7 +112,7 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 		Token string `json:"token"`
 	}
 
-	if err := c.ShouldBindJSON((&data)); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusBadRequest,
@@ -159,9 +160,9 @@ func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
 	cacheKey := "access_token:" + jti.(string)
 
 	var data struct {
-		Token string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
-	if err := c.ShouldBindJSON((&data)); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		log.Println("une erreur est survenue:", err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":  "Vous n'êtes pas connecté(e)s",
@@ -170,7 +171,7 @@ func (h *AuthHandler) DeconnexionHandler(c *gin.Context) {
 		return
 	}
 
-	err := h.service.Deconnexion(data.Token)
+	err := h.service.Deconnexion(data.RefreshToken)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

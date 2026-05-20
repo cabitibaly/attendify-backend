@@ -32,6 +32,18 @@ func (s *UtilisateurService) LireUnEmploye(utilisateurID uint) (*models.Utilisat
 	return s.utilisateurRepo.FindByID(utilisateurID)
 }
 
+func (s *UtilisateurService) ChangerDeSite(utilisateurID, siteID uint) error {
+	_, err := s.utilisateurRepo.FindByID(utilisateurID)
+
+	if err != nil {
+		return err
+	}
+
+	return s.utilisateurRepo.Update(utilisateurID, map[string]any{
+		"siteID": siteID,
+	})
+}
+
 func (s *UtilisateurService) ModifierSonCompte(utilisateurID uint, refreshToken string, data map[string]any) (string, error) {
 	utilisateurExist, err := s.utilisateurRepo.FindByID(utilisateurID)
 
@@ -139,5 +151,9 @@ func (s *UtilisateurService) ModifierSonMotDePasse(utilisateurID uint, ancien, n
 }
 
 func (s *UtilisateurService) SupprimerUnCompte(utilisateurID uint) error {
+	if _, err := s.utilisateurRepo.FindByID(utilisateurID); err != nil {
+		return fmt.Errorf("cet utilisateur n'existe pas")
+	}
+
 	return s.utilisateurRepo.Delete(utilisateurID)
 }

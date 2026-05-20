@@ -1,7 +1,6 @@
 package dto
 
 type ConnexionDTO struct {
-	Email      string `json:"email"`
-	Telephone  string `json:"telephone"`
+	Username   string `json:"username"`
 	MotDePasse string `json:"motDePasse"`
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cabitibaly/configs"
@@ -62,12 +63,6 @@ func (h *SiteHandler) TousLesSitesHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	cacheKey := "site:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	sites, hasNextPage, total, err := h.service.TousLesSites(recherche, page, limit)
 
 	if err != nil {
@@ -78,22 +73,8 @@ func (h *SiteHandler) TousLesSitesHandler(c *gin.Context) {
 		return
 	}
 
-	sitesFormated := dto.ToSiteDTOList(sites)
-
-	cacheValue := dto.SitesResponse{
-		Sites: sitesFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
-
 	c.JSON(http.StatusOK, gin.H{
-		"sites":       sitesFormated,
+		"sites":       dto.ToSiteDTOList(sites),
 		"hasNextPage": hasNextPage,
 		"total":       total,
 		"status":      http.StatusOK,
@@ -181,6 +162,14 @@ func (h *SiteHandler) SupprimerUnSiteHandler(c *gin.Context) {
 	err := h.service.SupprimerUnSite(uint(id))
 
 	if err != nil {
+		if strings.Contains(err.Error(), "n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  "Le site n'existe pas",
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,

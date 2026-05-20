@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cabitibaly/configs"
@@ -77,12 +78,6 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 		limit = 20
 	}
 
-	cacheKey := "utilisateurs:All:" + recherche + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	utilsateurs, hasNextPage, total, err := h.service.TousLesEmployes(recherche, page, limit)
 
 	if err != nil {
@@ -94,18 +89,6 @@ func (h *UtilisateurHandler) TousLesEmployesHandler(c *gin.Context) {
 	}
 
 	utilisateursFormated := dto.ToUtilisateurResponseDTOList(utilsateurs)
-
-	cacheValue := dto.UtilisateursResponse{
-		Utilisateurs: utilisateursFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"utilisateurs": utilisateursFormated,
@@ -155,6 +138,37 @@ func (h *UtilisateurHandler) LireUnEmployeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"utilisateur": utilisateurFormated,
 		"status":      http.StatusOK,
+	})
+}
+
+func (h *UtilisateurHandler) ChangerDeSiteHandler(c *gin.Context) {
+	utilisateurID, _ := strconv.Atoi(c.Param("id"))
+	siteID, _ := strconv.Atoi(c.Param("siteID"))
+
+	if utilisateurID < 1 || siteID < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Erreur de paramètre",
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
+
+	err := h.service.ChangerDeSite(uint(utilisateurID), uint(siteID))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	cacheKey := "utilisateur:" + fmt.Sprintf("%d", utilisateurID)
+	_ = configs.DeleteCache(cacheKey)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Changement de site effectué avec succès",
+		"status":  http.StatusOK,
 	})
 }
 
@@ -264,6 +278,14 @@ func (h *UtilisateurHandler) SupprimerUnCompteHandler(c *gin.Context) {
 	err := h.service.SupprimerUnCompte(uint(utilisateurID))
 
 	if err != nil {
+		if strings.Contains(err.Error(), "cet utilisateur n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,

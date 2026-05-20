@@ -19,6 +19,7 @@ func PointageRoutes(
 		pointage.POST("/arrive", pointageHandler.PointageArriveeHandler)
 		pointage.PATCH("/depart", pointageHandler.PointageDepartHandler)
 		pointage.GET("/tous-mes-pointages", pointageHandler.TousLesPointagesEmployeHandler)
+		pointage.GET("/est-sur-site", pointageHandler.EstSurSiteHandler)
 	}
 
 	admin := r.Group("/pointage")
@@ -26,6 +27,7 @@ func PointageRoutes(
 	{
 		admin.GET("/tous-les-pointages", pointageHandler.TousLesPointagesHandler)
 		admin.GET("/stats", pointageHandler.StatsHandler)
+		admin.GET("/export", pointageHandler.ExportHandler)
 		admin.DELETE("/supprimer/:id", pointageHandler.SupprimerUnPointageHandler)
 	}
 }

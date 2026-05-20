@@ -55,10 +55,10 @@ func (r *UtilisateurRepository) FindByTelephone(telephone string) (*models.Utili
 	return &utilisateur, nil
 }
 
-func (r *UtilisateurRepository) FindByEmailOrTelephone(email, telephone string) (*models.Utilisateur, error) {
+func (r *UtilisateurRepository) FindByEmailOrTelephone(username string) (*models.Utilisateur, error) {
 	var utilisateur models.Utilisateur
 
-	err := r.db.Where("email = ? OR telephone = ?", email, telephone).First(&utilisateur).Error
+	err := r.db.Where("email = ? OR telephone = ?", username, username).First(&utilisateur).Error
 
 	if err != nil {
 		return nil, err

@@ -56,6 +56,14 @@ func (h *CongeHandler) FaireUneDemandeHandler(c *gin.Context) {
 			return
 		}
 
+		if strings.Contains(errService.Error(), "n'existe pas") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":  errService.Error(),
+				"status": http.StatusNotFound,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":  errService.Error(),
 			"status": http.StatusInternalServerError,
@@ -63,9 +71,9 @@ func (h *CongeHandler) FaireUneDemandeHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"message": "congé créé avec succès",
-		"status":  http.StatusOK,
+		"status":  http.StatusCreated,
 	})
 }
 
@@ -142,12 +150,6 @@ func (h *CongeHandler) TousLesCongesHandler(c *gin.Context) {
 		limit = 10
 	}
 
-	cacheKey := "conges:All:" + strconv.Itoa(utilisateurID) + ":" + strconv.Itoa(statutID) + ":" + strconv.Itoa(page) + ":" + strconv.Itoa(limit)
-	if cached, err := configs.GetCache(cacheKey); err == nil {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
-		return
-	}
-
 	conges, hasNextPage, total, errService := h.service.TousLesConges(uint(utilisateurID), uint(statutID), page, limit)
 	if errService != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -158,18 +160,6 @@ func (h *CongeHandler) TousLesCongesHandler(c *gin.Context) {
 	}
 
 	congesFormated := dto.ToCongeResponseAdminDTOList(conges)
-
-	cacheValue := dto.CongesResponseAdmin{
-		Conges: congesFormated,
-		Pagination: dto.Pagination{
-			HasNextPage: hasNextPage,
-			Total:       total,
-			Status:      http.StatusOK,
-		},
-	}
-
-	jsonData, _ := json.Marshal(cacheValue)
-	_ = configs.SetCache(cacheKey, jsonData, 5*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
 		"conges":      congesFormated,
