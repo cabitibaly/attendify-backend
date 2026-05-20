@@ -213,7 +213,10 @@ go test ./...
  
 **cabitibaly** — [GitHub](https://github.com/cabitibaly)
 
-## Liens vers les apps mobiles
-
-[Attendify-employe](https://github.com/cabitibaly/attendify-employee)
-[Attendify-admin](https://github.com/cabitibaly/attendify-admin)
+---
+ 
+## 📱 Applications mobiles
+ 
+[Attendify Employé](https://github.com/cabitibaly/attendify-employee)
+ 
+[Attendify Admin](https://github.com/cabitibaly/attendify-admin)
